@@ -1,0 +1,936 @@
+from collections import Counter, defaultdict
+from datetime import date, timedelta
+from functools import lru_cache
+import html
+import json
+import os
+from pathlib import Path
+import re
+import socket
+import xml.etree.ElementTree as ET
+from urllib.request import urlopen
+import unicodedata
+from zipfile import ZipFile
+
+from flask import Flask, jsonify, render_template, send_file
+
+app = Flask(__name__)
+
+XLSX_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+EXCEL_EPOCH = date(1899, 12, 30)
+MAP_CRIME_CATEGORIES = {
+    "CVLI": {"label": "CVLI", "color": "#d62828"},
+    "FURTO": {"label": "Furto", "color": "#2fb344"},
+    "CVP": {"label": "CVP", "color": "#116b35"},
+    "DISPARO DE ARMA": {"label": "Disparo de arma de fogo", "color": "#6b7280"},
+    "MARIA DA PENHA": {"label": "Maria da Penha", "color": "#7c3aed"},
+    "PERTURBAÇÃO AO SOSSEGO ALHEIO": {
+        "label": "Perturbação do sossego alheio",
+        "color": "#1664d9",
+    },
+    "LESÃO CORPORAL": {"label": "Lesão corporal", "color": "#b95622"},
+    "ACHADO DE CADÁVER": {"label": "Achado de cadáver", "color": "#111111"},
+    "TENTATIVA DE HOMICÍDIO": {"label": "Tentativa de homicídio", "color": "#12c8c6"},
+}
+CEARA_MALHA_URL = (
+    "https://servicodados.ibge.gov.br/api/v3/malhas/estados/23"
+    "?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio"
+)
+CEARA_MUNICIPIOS_URL = "https://servicodados.ibge.gov.br/api/v1/localidades/estados/23/municipios"
+
+
+def _format_number(value, decimals=0):
+    if decimals:
+        text = f"{value:,.{decimals}f}"
+    else:
+        text = f"{value:,.0f}"
+    return text.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _to_float(value):
+    try:
+        return float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+
+
+def _column_index(cell_ref):
+    letters = re.match(r"([A-Z]+)", cell_ref).group(1)
+    index = 0
+    for letter in letters:
+        index = index * 26 + ord(letter) - 64
+    return index - 1
+
+
+def _shared_strings(workbook):
+    if "xl/sharedStrings.xml" not in workbook.namelist():
+        return []
+
+    root = ET.fromstring(workbook.read("xl/sharedStrings.xml"))
+    return [
+        "".join(node.text or "" for node in item.iter(f"{XLSX_NS}t"))
+        for item in root.findall(f"{XLSX_NS}si")
+    ]
+
+
+def _sheet_path_by_name(workbook, sheet_name):
+    workbook_xml = ET.fromstring(workbook.read("xl/workbook.xml"))
+    rels_xml = ET.fromstring(workbook.read("xl/_rels/workbook.xml.rels"))
+    rels = {rel.attrib["Id"]: rel.attrib["Target"] for rel in rels_xml}
+
+    for sheet in workbook_xml.find(f"{XLSX_NS}sheets"):
+        if sheet.attrib["name"] == sheet_name:
+            return f"xl/{rels[sheet.attrib[f'{REL_NS}id']]}"
+
+    available = [sheet.attrib["name"] for sheet in workbook_xml.find(f"{XLSX_NS}sheets")]
+    raise ValueError(f"Aba {sheet_name!r} não encontrada. Abas disponíveis: {available}")
+
+
+def _read_xlsx_sheet(path, sheet_name):
+    with ZipFile(path) as workbook:
+        shared_strings = _shared_strings(workbook)
+        sheet_path = _sheet_path_by_name(workbook, sheet_name)
+        root = ET.fromstring(workbook.read(sheet_path))
+
+        rows = []
+        for row in root.find(f"{XLSX_NS}sheetData").findall(f"{XLSX_NS}row"):
+            values = []
+            for cell in row.findall(f"{XLSX_NS}c"):
+                index = _column_index(cell.attrib["r"])
+                while len(values) <= index:
+                    values.append("")
+
+                cell_type = cell.attrib.get("t")
+                raw_value = cell.find(f"{XLSX_NS}v")
+
+                if cell_type == "s" and raw_value is not None:
+                    value = shared_strings[int(raw_value.text)]
+                elif cell_type == "inlineStr":
+                    value = "".join(node.text or "" for node in cell.iter(f"{XLSX_NS}t"))
+                else:
+                    value = raw_value.text if raw_value is not None else ""
+
+                values[index] = value
+            rows.append(values)
+
+    headers = rows[0]
+    records = []
+    for row in rows[1:]:
+        records.append({header: row[index] if index < len(row) else "" for index, header in enumerate(headers)})
+    return records
+
+
+def _workbook_path():
+    project_dir = Path(__file__).resolve().parent
+    matches = list(project_dir.glob("Ana*lise.xlsx"))
+    if not matches:
+        raise FileNotFoundError("Planilha Análise.xlsx não encontrada na pasta do projeto.")
+    return matches[0]
+
+
+def _project_dir():
+    return Path(__file__).resolve().parent
+
+
+def _ceara_asset_paths():
+    data_dir = _project_dir() / "static" / "data"
+    return {
+        "data_dir": data_dir,
+        "geojson": data_dir / "ceara_municipios.geojson",
+        "kml": data_dir / "ceara_municipios.kml",
+    }
+
+
+def _fetch_json(url):
+    with urlopen(url, timeout=40) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _ceara_geojson():
+    geojson = _fetch_json(CEARA_MALHA_URL)
+    names = {
+        str(item["id"]): item["nome"]
+        for item in _fetch_json(CEARA_MUNICIPIOS_URL)
+    }
+
+    for feature in geojson.get("features", []):
+        properties = feature.setdefault("properties", {})
+        code = str(properties.get("codarea", ""))
+        properties["nome"] = names.get(code, code)
+
+    geojson["features"].sort(key=lambda item: item.get("properties", {}).get("nome", ""))
+    return geojson
+
+
+def _kml_coordinates(ring):
+    return " ".join(f"{lon},{lat},0" for lon, lat in ring)
+
+
+def _kml_polygon(coordinates):
+    rings = []
+    if not coordinates:
+        return ""
+
+    rings.append(
+        "<outerBoundaryIs><LinearRing><coordinates>"
+        f"{_kml_coordinates(coordinates[0])}"
+        "</coordinates></LinearRing></outerBoundaryIs>"
+    )
+    for inner_ring in coordinates[1:]:
+        rings.append(
+            "<innerBoundaryIs><LinearRing><coordinates>"
+            f"{_kml_coordinates(inner_ring)}"
+            "</coordinates></LinearRing></innerBoundaryIs>"
+        )
+
+    return f"<Polygon>{''.join(rings)}</Polygon>"
+
+
+def _feature_to_kml_placemark(feature):
+    properties = feature.get("properties", {})
+    name = html.escape(properties.get("nome") or properties.get("codarea") or "Município")
+    code = html.escape(str(properties.get("codarea", "")))
+    geometry = feature.get("geometry") or {}
+    geometry_type = geometry.get("type")
+    coordinates = geometry.get("coordinates") or []
+
+    if geometry_type == "Polygon":
+        geometry_markup = _kml_polygon(coordinates)
+    elif geometry_type == "MultiPolygon":
+        geometry_markup = "<MultiGeometry>" + "".join(_kml_polygon(polygon) for polygon in coordinates) + "</MultiGeometry>"
+    else:
+        geometry_markup = ""
+
+    return (
+        "<Placemark>"
+        f"<name>{name}</name>"
+        "<styleUrl>#municipio</styleUrl>"
+        "<ExtendedData>"
+        f'<Data name="codarea"><value>{code}</value></Data>'
+        f'<Data name="nome"><value>{name}</value></Data>'
+        "</ExtendedData>"
+        f"{geometry_markup}"
+        "</Placemark>"
+    )
+
+
+def _geojson_to_kml(geojson):
+    placemarks = "\n".join(_feature_to_kml_placemark(feature) for feature in geojson.get("features", []))
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+        "<Document>\n"
+        "<name>Divisas municipais do Ceará - IBGE</name>\n"
+        "<Style id=\"municipio\">"
+        "<LineStyle><color>ff0b4f6c</color><width>1.8</width></LineStyle>"
+        "<PolyStyle><color>261ccad8</color></PolyStyle>"
+        "</Style>\n"
+        f"{placemarks}\n"
+        "</Document>\n"
+        "</kml>\n"
+    )
+
+
+def _kml_style_id(properties):
+    dados = properties.get("dados") or {}
+    schools = dados.get("escolas", 0)
+    if not dados.get("has_data"):
+        return "sem_dados"
+    if schools >= 10:
+        return "alta"
+    if schools >= 5:
+        return "media"
+    return "baixa"
+
+
+def _kml_data(name, value):
+    return f'<Data name="{html.escape(name)}"><value>{html.escape(str(value))}</value></Data>'
+
+
+def _feature_to_school_kml_placemark(feature):
+    properties = feature.get("properties", {})
+    dados = properties.get("dados") or {}
+    name = html.escape(properties.get("nome") or properties.get("codarea") or "Município")
+    code = properties.get("codarea", "")
+    schools = int(dados.get("escolas") or 0)
+    students = int(dados.get("alunos") or 0)
+    average = round(students / schools) if schools else 0
+    geometry = feature.get("geometry") or {}
+    geometry_type = geometry.get("type")
+    coordinates = geometry.get("coordinates") or []
+
+    if geometry_type == "Polygon":
+        geometry_markup = _kml_polygon(coordinates)
+    elif geometry_type == "MultiPolygon":
+        geometry_markup = "<MultiGeometry>" + "".join(_kml_polygon(polygon) for polygon in coordinates) + "</MultiGeometry>"
+    else:
+        geometry_markup = ""
+
+    description = html.escape(
+        f"Escolas: {schools}\n"
+        f"Alunos: {students}\n"
+        f"Alunos por escola: {average}"
+    )
+    extended_data = "".join(
+        [
+            _kml_data("codigo_ibge", code),
+            _kml_data("municipio", properties.get("nome", "")),
+            _kml_data("municipio_tabela", dados.get("municipio_tabela", "")),
+            _kml_data("escolas", schools),
+            _kml_data("alunos", students),
+            _kml_data("alunos_por_escola", average),
+            _kml_data("faixa_escolas", dados.get("faixa_escolas", "")),
+            _kml_data("faixa_alunos", dados.get("faixa_alunos", "")),
+            _kml_data("tem_dados", "sim" if dados.get("has_data") else "nao"),
+        ]
+    )
+
+    return (
+        "<Placemark>"
+        f"<name>{name}</name>"
+        f"<description>{description}</description>"
+        f"<styleUrl>#{_kml_style_id(properties)}</styleUrl>"
+        f"<ExtendedData>{extended_data}</ExtendedData>"
+        f"{geometry_markup}"
+        "</Placemark>"
+    )
+
+
+def _school_geojson_to_kml(geojson):
+    placemarks = "\n".join(_feature_to_school_kml_placemark(feature) for feature in geojson.get("features", []))
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+        "<Document>\n"
+        "<name>Escolas por município do Ceará</name>\n"
+        "<description>Mapa exportado da aba DADOS com quantidade de escolas e alunos por município.</description>\n"
+        '<Style id="sem_dados"><LineStyle><color>ff78858c</color><width>1.1</width></LineStyle>'
+        '<PolyStyle><color>55e5e0d8</color></PolyStyle></Style>\n'
+        '<Style id="baixa"><LineStyle><color>ff34535d</color><width>1.2</width></LineStyle>'
+        '<PolyStyle><color>9940b4f0</color></PolyStyle></Style>\n'
+        '<Style id="media"><LineStyle><color>ff34535d</color><width>1.4</width></LineStyle>'
+        '<PolyStyle><color>99cb7a1f</color></PolyStyle></Style>\n'
+        '<Style id="alta"><LineStyle><color>ff34535d</color><width>1.7</width></LineStyle>'
+        '<PolyStyle><color>997a7f08</color></PolyStyle></Style>\n'
+        f"{placemarks}\n"
+        "</Document>\n"
+        "</kml>\n"
+    )
+
+
+def export_school_kml():
+    paths = _ceara_asset_paths()
+    paths["data_dir"].mkdir(parents=True, exist_ok=True)
+    data = get_territorial_data()
+    paths["kml"].write_text(_school_geojson_to_kml(data["geojson"]), encoding="utf-8")
+    return paths["kml"]
+
+
+def _coordinate_bounds(geojson):
+    lats = []
+    lons = []
+
+    def visit(value):
+        if isinstance(value, list) and value and isinstance(value[0], (int, float)):
+            lons.append(value[0])
+            lats.append(value[1])
+            return
+        if isinstance(value, list):
+            for item in value:
+                visit(item)
+
+    for feature in geojson.get("features", []):
+        visit((feature.get("geometry") or {}).get("coordinates", []))
+
+    if not lats or not lons:
+        return [[-7.9, -41.5], [-2.7, -37.1]]
+    return [[min(lats), min(lons)], [max(lats), max(lons)]]
+
+
+def ensure_ceara_boundary_assets():
+    paths = _ceara_asset_paths()
+    paths["data_dir"].mkdir(parents=True, exist_ok=True)
+
+    if paths["geojson"].exists() and paths["kml"].exists():
+        return paths
+
+    geojson = _ceara_geojson()
+    paths["geojson"].write_text(json.dumps(geojson, ensure_ascii=False), encoding="utf-8")
+    paths["kml"].write_text(_geojson_to_kml(geojson), encoding="utf-8")
+    return paths
+
+
+def _normalize_key(value):
+    text = unicodedata.normalize("NFKD", str(value or "").strip())
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return re.sub(r"[^a-z0-9]+", "", text.lower())
+
+
+def _clean_dados_record(record):
+    return {
+        "ais": (record.get("AIS") or "").strip(),
+        "crpm": (record.get("CRPM") or "").strip(),
+        "batalhao": (record.get("BATALHÃO") or "").strip(),
+        "cidade": (record.get("CIDADE") or "").strip(),
+        "bairro": (record.get("BAIRRO") or "").strip(),
+    }
+
+
+def _load_ceara_geojson():
+    paths = ensure_ceara_boundary_assets()
+    return json.loads(paths["geojson"].read_text(encoding="utf-8"))
+
+
+def _count_options(records, key):
+    counts = Counter(record[key] for record in records if record[key])
+    return [
+        {"label": label, "count": count}
+        for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    ]
+
+
+MUNICIPALITY_ALIASES = {
+    "itapage": "itapaje",
+    "limoeiro": "limoeirodonorte",
+}
+
+
+def _municipality_key(value):
+    key = _normalize_key(value)
+    return MUNICIPALITY_ALIASES.get(key, key)
+
+
+def _to_int(value):
+    number = _to_float(value)
+    return int(number) if number is not None else 0
+
+
+def _school_range(value):
+    if value >= 15:
+        return "15+ escolas"
+    if value >= 10:
+        return "10 a 14 escolas"
+    if value >= 5:
+        return "5 a 9 escolas"
+    if value >= 1:
+        return "1 a 4 escolas"
+    return "Sem escolas"
+
+
+def _student_range(value):
+    if value >= 1500:
+        return "1.500+ alunos"
+    if value >= 1000:
+        return "1.000 a 1.499 alunos"
+    if value >= 500:
+        return "500 a 999 alunos"
+    if value >= 1:
+        return "1 a 499 alunos"
+    return "Sem alunos"
+
+
+def get_territorial_data():
+    geojson = _load_ceara_geojson()
+    raw_records = _read_xlsx_sheet(_workbook_path(), "DADOS")
+    dados_records = []
+
+    for index, record in enumerate(raw_records, start=1):
+        municipality = (record.get("Quantidade de Escolas por Município") or "").strip()
+        schools = _to_int(record.get("ESCOLAS"))
+        students = _to_int(record.get("qtd_alunos"))
+        if not municipality:
+            continue
+
+        dados_records.append(
+            {
+                "id": index,
+                "municipio_tabela": municipality,
+                "municipio_mapeado": "",
+                "escolas": schools,
+                "alunos": students,
+                "faixa_escolas": _school_range(schools),
+                "faixa_alunos": _student_range(students),
+            }
+        )
+
+    municipality_by_key = {
+        _municipality_key(feature.get("properties", {}).get("nome")): feature
+        for feature in geojson.get("features", [])
+    }
+    rows_by_municipality = {}
+    unmatched_rows = []
+
+    for row in dados_records:
+        municipality_key = _municipality_key(row["municipio_tabela"])
+        feature = municipality_by_key.get(municipality_key)
+        if feature:
+            row["municipio_mapeado"] = feature["properties"]["nome"]
+            rows_by_municipality[municipality_key] = row
+        else:
+            unmatched_rows.append(row)
+
+    for feature in geojson.get("features", []):
+        properties = feature.setdefault("properties", {})
+        key = _municipality_key(properties.get("nome"))
+        row = rows_by_municipality.get(key)
+
+        properties["dados"] = {
+            "has_data": bool(row),
+            "municipio_tabela": row["municipio_tabela"] if row else "",
+            "escolas": row["escolas"] if row else 0,
+            "alunos": row["alunos"] if row else 0,
+            "faixa_escolas": row["faixa_escolas"] if row else "Sem escolas",
+            "faixa_alunos": row["faixa_alunos"] if row else "Sem alunos",
+            "rows": [row] if row else [],
+        }
+
+    mapped_rows = list(rows_by_municipality.values())
+    schools_total = sum(record["escolas"] for record in dados_records)
+    students_total = sum(record["alunos"] for record in dados_records)
+    max_schools = max((record["escolas"] for record in dados_records), default=0)
+    max_students = max((record["alunos"] for record in dados_records), default=0)
+
+    return {
+        "source": "Análise.xlsx / aba DADOS",
+        "geojson": geojson,
+        "records": dados_records,
+        "mapped_rows": mapped_rows,
+        "unmatched_rows": unmatched_rows,
+        "filters": {
+            "faixa_escolas": _count_options(dados_records, "faixa_escolas"),
+            "faixa_alunos": _count_options(dados_records, "faixa_alunos"),
+            "cidade": _count_options(mapped_rows, "municipio_mapeado"),
+        },
+        "summary": {
+            "total_rows": len(dados_records),
+            "mapped_rows": len(mapped_rows),
+            "unmatched_rows": len(unmatched_rows),
+            "municipalities_total": len(geojson.get("features", [])),
+            "municipalities_with_data": len(rows_by_municipality),
+            "schools_total": schools_total,
+            "students_total": students_total,
+            "max_schools": max_schools,
+            "max_students": max_students,
+        },
+    }
+
+
+def _available_port(preferred_port):
+    for port in range(preferred_port, preferred_port + 50):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
+                sock.bind(("127.0.0.1", port))
+            except OSError:
+                continue
+            return port
+    raise RuntimeError(f"Nenhuma porta livre encontrada a partir de {preferred_port}.")
+
+
+def _excel_date_range(records):
+    serials = []
+    for record in records:
+        serial = _to_float(record.get("DATA"))
+        if serial is not None:
+            serials.append(int(serial))
+
+    if not serials:
+        return "Período não identificado"
+
+    start = EXCEL_EPOCH + timedelta(days=min(serials))
+    end = EXCEL_EPOCH + timedelta(days=max(serials))
+    return f"{start.strftime('%d/%m/%Y')} a {end.strftime('%d/%m/%Y')}"
+
+
+def _excel_dates(records):
+    dates = []
+    for record in records:
+        serial = _to_float(record.get("DATA"))
+        if serial is not None:
+            dates.append(EXCEL_EPOCH + timedelta(days=int(serial)))
+    return dates
+
+
+def _top_counter(records, column, limit=5):
+    return Counter(record.get(column) or "Não informado" for record in records).most_common(limit)
+
+
+def _map_crime_key(crime):
+    normalized = (crime or "").strip().upper()
+    if normalized.startswith("DISPARO DE ARMA"):
+        return "DISPARO DE ARMA"
+    return normalized if normalized in MAP_CRIME_CATEGORIES else None
+
+
+def _crime_color(crime):
+    key = _map_crime_key(crime)
+    if key:
+        return MAP_CRIME_CATEGORIES[key]["color"]
+    return "#1f2937"
+
+
+def _city_metrics(records):
+    cities = {}
+    crimes_by_city = defaultdict(Counter)
+
+    for record in records:
+        city = record.get("CICADE") or record.get("CIDADE") or "Não informado"
+        crime = record.get("CRIME") or "Não informado"
+        population = _to_float(record.get("POPULAÇÃO"))
+        lat = _to_float(record.get("LAT"))
+        lon = _to_float(record.get("LONG"))
+
+        if city not in cities:
+            cities[city] = {"count": 0, "population": None, "lat": [], "lon": []}
+
+        cities[city]["count"] += 1
+        crimes_by_city[city][crime] += 1
+
+        if population:
+            cities[city]["population"] = population
+        if lat is not None and lon is not None:
+            cities[city]["lat"].append(lat)
+            cities[city]["lon"].append(lon)
+
+    metrics = []
+    for city, data in cities.items():
+        rate = None
+        if data["population"]:
+            rate = data["count"] / data["population"] * 10000
+
+        metrics.append(
+            {
+                "city": city,
+                "count": data["count"],
+                "rate": rate,
+                "top_crime": crimes_by_city[city].most_common(1)[0][0],
+                "lat": sum(data["lat"]) / len(data["lat"]) if data["lat"] else None,
+                "lon": sum(data["lon"]) / len(data["lon"]) if data["lon"] else None,
+            }
+        )
+
+    return metrics
+
+
+def _unique_sorted(records, column, limit=120):
+    values = sorted({record.get(column) for record in records if record.get(column)})
+    return values[:limit]
+
+
+def _map_layer_points(records, location_type):
+    locations = {}
+
+    for record in records:
+        city = record.get("CICADE") or record.get("CIDADE") or ""
+        if location_type == "fortaleza" and city.strip().lower() != "fortaleza":
+            continue
+
+        crime_key = _map_crime_key(record.get("CRIME"))
+        if crime_key is None:
+            continue
+
+        if location_type == "fortaleza":
+            location = record.get("BAIRRO") or "Não informado"
+            layer_label = "Bairro"
+        else:
+            location = city or "Não informado"
+            layer_label = "Município"
+
+        lat = _to_float(record.get("LAT"))
+        lon = _to_float(record.get("LONG"))
+        if lat is None or lon is None:
+            continue
+
+        if location not in locations:
+            locations[location] = {"lat": [], "lon": [], "crimes": Counter(), "layer_label": layer_label}
+
+        locations[location]["crimes"][crime_key] += 1
+        locations[location]["lat"].append(lat)
+        locations[location]["lon"].append(lon)
+
+    points = []
+    for location, data in locations.items():
+        lat = sum(data["lat"]) / len(data["lat"])
+        lon = sum(data["lon"]) / len(data["lon"])
+        total = sum(data["crimes"].values())
+        for crime_key, count in data["crimes"].most_common():
+            category = MAP_CRIME_CATEGORIES[crime_key]
+            points.append(
+                {
+                    "name": location,
+                    "type": data["layer_label"],
+                    "crime": crime_key,
+                    "crime_label": category["label"],
+                    "color": category["color"],
+                    "count": count,
+                    "total": total,
+                    "lat": round(lat, 6),
+                    "lon": round(lon, 6),
+                }
+            )
+    return sorted(points, key=lambda point: (point["name"], -point["count"], point["crime_label"]))
+
+
+def _fortaleza_neighborhood_table(records):
+    rows = {}
+    ais_by_neighborhood = defaultdict(Counter)
+    crime_by_neighborhood = defaultdict(Counter)
+
+    for record in records:
+        city = record.get("CICADE") or record.get("CIDADE") or ""
+        if city.strip().lower() != "fortaleza":
+            continue
+
+        neighborhood = record.get("BAIRRO") or "Não informado"
+        ais = record.get("AIS") or "-"
+        crime = record.get("CRIME") or "Não informado"
+
+        rows.setdefault(neighborhood, {"bairro": neighborhood, "total": 0, "cvp": 0, "maria": 0})
+        rows[neighborhood]["total"] += 1
+        ais_by_neighborhood[neighborhood][ais] += 1
+        crime_by_neighborhood[neighborhood][crime] += 1
+
+        if crime == "CVP":
+            rows[neighborhood]["cvp"] += 1
+        if crime == "MARIA DA PENHA":
+            rows[neighborhood]["maria"] += 1
+
+    table = []
+    for index, row in enumerate(sorted(rows.values(), key=lambda item: item["total"], reverse=True), start=1):
+        row["ranking"] = f"{index}º"
+        row["ais"] = ais_by_neighborhood[row["bairro"]].most_common(1)[0][0]
+        row["top_crime"] = crime_by_neighborhood[row["bairro"]].most_common(1)[0][0]
+        table.append(row)
+    return table[:14]
+
+
+def _crime_tree(records):
+    root_total = 0
+    crime_counts = Counter()
+    neighborhoods_by_crime = defaultdict(Counter)
+
+    for record in records:
+        city = record.get("CICADE") or record.get("CIDADE") or ""
+        if city.strip().lower() != "fortaleza":
+            continue
+
+        crime = record.get("CRIME") or "Não informado"
+        neighborhood = record.get("BAIRRO") or "Não informado"
+        root_total += 1
+        crime_counts[crime] += 1
+        neighborhoods_by_crime[crime][neighborhood] += 1
+
+    children = []
+    max_crime = max(crime_counts.values()) if crime_counts else 1
+    for crime, count in crime_counts.most_common(8):
+        neighborhoods = [
+            {
+                "name": name,
+                "count": value,
+                "width": round(value / count * 100, 1) if count else 0,
+            }
+            for name, value in neighborhoods_by_crime[crime].most_common(10)
+        ]
+        children.append(
+            {
+                "name": crime,
+                "count": count,
+                "color": _crime_color(crime),
+                "width": round(count / max_crime * 100, 1),
+                "neighborhoods": neighborhoods,
+            }
+        )
+
+    return {"root_label": "Bairros e suas maiores ocorrências", "root_total": root_total, "children": children}
+
+
+@lru_cache(maxsize=1)
+def get_dashboard_data():
+    records = _read_xlsx_sheet(_workbook_path(), "Análise")
+    total = len(records)
+    date_range = _excel_date_range(records)
+    dates = _excel_dates(records)
+
+    crimes = _top_counter(records, "CRIME", 6)
+    detailed_crimes = _top_counter(records, "CRIME DETALHADO", 5)
+    turns = Counter(record.get("TURNO") or "Não informado" for record in records)
+    battalions = Counter(record.get("BATALHÃO") or "Não informado" for record in records)
+    ais_counter = Counter(record.get("AIS") or "Não informado" for record in records)
+    weekday_counter = Counter(record.get("DIA DA SEMANA") or "Não informado" for record in records)
+    city_metrics = _city_metrics(records)
+    ceara_map_points = _map_layer_points(records, "ceara")
+    fortaleza_map_points = _map_layer_points(records, "fortaleza")
+
+    top_crime, top_crime_count = crimes[0]
+    top_crime_share = top_crime_count / total * 100
+    night_count = turns.get("Noite", 0) + turns.get("Madrugada", 0)
+    unique_cities = len({item["city"] for item in city_metrics if item["city"] != "Não informado"})
+
+    battalion_effective = {}
+    for record in records:
+        battalion = record.get("BATALHÃO") or "Não informado"
+        effective = _to_float(record.get("EFETIVO"))
+        if effective:
+            battalion_effective[battalion] = effective
+
+    top_battalions = battalions.most_common(8)
+    rates_by_battalion = [
+        round(count / battalion_effective[battalion], 2) if battalion_effective.get(battalion) else 0
+        for battalion, count in top_battalions
+    ]
+
+    top_cities = sorted(
+        [item for item in city_metrics if item["rate"] is not None],
+        key=lambda item: item["rate"],
+        reverse=True,
+    )[:8]
+
+    treemap_colors = ["#8f6bcc", "#35df72", "#087f3f", "#b95622", "#7b7f84", "#12c8c6", "#e11d1d"]
+    treemap = []
+    max_treemap_count = max((count for _, count in detailed_crimes), default=1)
+    for index, (label, count) in enumerate(detailed_crimes[:7]):
+        treemap.append(
+            {
+                "label": label,
+                "count": count,
+                "value": _format_number(count),
+                "share": f"{count / total * 100:.1f}%".replace(".", ","),
+                "color": treemap_colors[index % len(treemap_colors)],
+                "weight": max(18, round(count / max_treemap_count * 100, 1)),
+            }
+        )
+
+    scatter_chart = []
+    for battalion, count in battalions.most_common(18):
+        effective = battalion_effective.get(battalion)
+        if effective:
+            scatter_chart.append({"x": effective, "y": count, "label": battalion})
+
+    top_effective = sorted(battalion_effective.items(), key=lambda item: item[1])[0] if battalion_effective else ("-", 0)
+    populations = {}
+    for record in records:
+        city = record.get("CICADE") or record.get("CIDADE") or "Não informado"
+        population = _to_float(record.get("POPULAÇÃO"))
+        if population:
+            populations[city] = population
+
+    ceara_area_km2 = 148894.4
+    mapped_population = sum(populations.values())
+    demographic_density = mapped_population / ceara_area_km2 if mapped_population else 0
+
+    weekday_order = ["domingo", "sábado", "quinta-feira", "sexta-feira", "segunda-feira", "terça-feira", "quarta-feira"]
+    turn_order = ["Noite", "Madrugada", "Tarde", "Manhã"]
+    ais_items = ais_counter.most_common(10)
+    ais_max = max((count for _, count in ais_items), default=1)
+    tree = _crime_tree(records)
+
+    return {
+        "source": "Análise.xlsx / aba Análise",
+        "period": date_range,
+        "filters": {
+            "date_start": min(dates).strftime("%d/%m/%Y") if dates else "",
+            "date_end": max(dates).strftime("%d/%m/%Y") if dates else "",
+            "cities": _unique_sorted(records, "CICADE"),
+            "ais": _unique_sorted(records, "AIS"),
+            "bpm": _unique_sorted(records, "BATALHÃO"),
+            "neighborhoods": _unique_sorted(records, "BAIRRO"),
+            "crimes": _unique_sorted(records, "CRIME"),
+        },
+        "executive_kpis": [
+            {"value": _format_number(ceara_area_km2, 1), "label": "Área territorial km²"},
+            {"value": f"{round(total / 1000)} Mil", "label": "Total Ocorrências"},
+            {"value": top_effective[0], "label": f"{_format_number(top_effective[1])} efetivo por batalhão"},
+            {"value": _format_number(demographic_density, 2), "label": "Densidade demográfica"},
+            {"value": f"{total / 1000:.2f} Mil".replace(".", ","), "label": "Taxa CVLI 100 Mil"},
+            {"value": "0,54", "label": "IDH"},
+        ],
+        "kpis": [
+            {
+                "label": "Ocorrências analisadas",
+                "value": _format_number(total),
+                "trend": date_range,
+                "status": "up",
+            },
+            {
+                "label": "Principal ocorrência",
+                "value": f"{top_crime_share:.1f}%".replace(".", ","),
+                "trend": f"{top_crime} · {_format_number(top_crime_count)} registros",
+                "status": "warning",
+            },
+            {
+                "label": "Cidades mapeadas",
+                "value": _format_number(unique_cities),
+                "trend": "Camadas de municípios e bairros de Fortaleza",
+                "status": "up",
+            },
+            {
+                "label": "Ocorrências à noite",
+                "value": f"{night_count / total * 100:.1f}%".replace(".", ","),
+                "trend": f"{_format_number(night_count)} registros em noite/madrugada",
+                "status": "warning",
+            },
+        ],
+        "bar_chart": {
+            "labels": [battalion for battalion, _ in top_battalions],
+            "ocorrencias": [count for _, count in top_battalions],
+            "taxa_efetivo": rates_by_battalion,
+        },
+        "pie_chart": {
+            "labels": [label for label, _ in crimes],
+            "values": [count for _, count in crimes],
+        },
+        "weekday_chart": {
+            "labels": weekday_order,
+            "values": [weekday_counter.get(day, 0) for day in weekday_order],
+        },
+        "turn_chart": {
+            "labels": turn_order,
+            "values": [turns.get(turn, 0) for turn in turn_order],
+        },
+        "ais_chart": [
+            {"label": label, "value": value, "width": round(value / ais_max * 100, 1)}
+            for label, value in ais_items
+        ],
+        "scatter_chart": scatter_chart,
+        "treemap": treemap,
+        "maps": {
+            "ceara": ceara_map_points,
+            "fortaleza": fortaleza_map_points,
+            "legend": list(MAP_CRIME_CATEGORIES.values()),
+        },
+        "bairro_table": _fortaleza_neighborhood_table(records),
+        "crime_tree": tree,
+        "datasets": [
+            {
+                "name": item["city"],
+                "status": item["top_crime"],
+                "rows": _format_number(item["count"]),
+                "quality": f"{item['rate']:.1f}".replace(".", ",") if item["rate"] is not None else "-",
+            }
+            for item in top_cities
+        ],
+    }
+
+
+@app.route("/")
+def home():
+    map_page = get_territorial_data()
+    return render_template("index.html", map_page=map_page)
+
+
+@app.route("/dados/ceara-municipios.kml")
+def ceara_municipalities_kml():
+    kml_path = export_school_kml()
+    return send_file(kml_path, mimetype="application/vnd.google-earth.kml+xml", as_attachment=True)
+
+
+@app.route("/api/dashboard")
+def dashboard_api():
+    return jsonify(get_territorial_data())
+
+
+if __name__ == "__main__":
+    preferred_port = int(os.environ.get("PORT", 5010))
+    port = _available_port(preferred_port)
+    print(f"Dashboard disponível em http://127.0.0.1:{port}")
+    app.run(debug=True, port=port, use_reloader=False)
