@@ -1,4 +1,5 @@
 from collections import Counter, defaultdict
+import csv
 from datetime import date, timedelta
 from functools import lru_cache
 import html
@@ -139,6 +140,8 @@ def _ceara_asset_paths():
         "data_dir": data_dir,
         "geojson": data_dir / "ceara_municipios.geojson",
         "kml": data_dir / "ceara_municipios.kml",
+        "csv": data_dir / "ceara_municipios.csv",
+        "pdf": data_dir / "ceara_municipios.pdf",
     }
 
 
@@ -325,6 +328,174 @@ def export_school_kml():
     data = get_territorial_data()
     paths["kml"].write_text(_school_geojson_to_kml(data["geojson"]), encoding="utf-8")
     return paths["kml"]
+
+
+def _school_export_rows(data):
+    rows = []
+    for record in data["records"]:
+        schools = int(record.get("escolas") or 0)
+        students = int(record.get("alunos") or 0)
+        average = round(students / schools) if schools else 0
+        rows.append(
+            {
+                "municipio": record.get("municipio_tabela", ""),
+                "municipio_mapeado": record.get("municipio_mapeado", ""),
+                "escolas": schools,
+                "alunos": students,
+                "alunos_por_escola": average,
+                "faixa_escolas": record.get("faixa_escolas", ""),
+                "faixa_alunos": record.get("faixa_alunos", ""),
+            }
+        )
+    return rows
+
+
+def export_school_csv():
+    paths = _ceara_asset_paths()
+    paths["data_dir"].mkdir(parents=True, exist_ok=True)
+    data = get_territorial_data()
+    rows = _school_export_rows(data)
+    fieldnames = [
+        "municipio",
+        "municipio_mapeado",
+        "escolas",
+        "alunos",
+        "alunos_por_escola",
+        "faixa_escolas",
+        "faixa_alunos",
+    ]
+
+    with paths["csv"].open("w", encoding="utf-8-sig", newline="") as output:
+        writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=";")
+        writer.writeheader()
+        writer.writerows(rows)
+
+    return paths["csv"]
+
+
+def _pdf_text(value):
+    text = str(value)
+    replacements = {
+        "\\": "\\\\",
+        "(": "\\(",
+        ")": "\\)",
+        "\r": " ",
+        "\n": " ",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+
+def _pdf_cell(value, width):
+    text = str(value)
+    return text if len(text) <= width else f"{text[: max(0, width - 3)]}..."
+
+
+def _simple_pdf(title, lines):
+    page_width = 595
+    page_height = 842
+    margin_x = 42
+    line_height = 14
+    lines_per_page = 50
+    pages = [lines[index:index + lines_per_page] for index in range(0, len(lines), lines_per_page)] or [[]]
+    objects = []
+
+    def add_object(content):
+        objects.append(content)
+        return len(objects)
+
+    font_id = add_object("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    page_ids = []
+
+    for page_number, page_lines in enumerate(pages, start=1):
+        commands = [
+            "BT",
+            "/F1 16 Tf",
+            f"{margin_x} {page_height - 48} Td",
+            f"({_pdf_text(title)}) Tj",
+            "/F1 9 Tf",
+            f"0 -{line_height * 2} Td",
+        ]
+
+        for line in page_lines:
+            commands.append(f"({_pdf_text(line)}) Tj")
+            commands.append(f"0 -{line_height} Td")
+
+        commands.extend(
+            [
+                "/F1 8 Tf",
+                f"0 -{line_height} Td",
+                f"(Pagina {page_number} de {len(pages)}) Tj",
+                "ET",
+            ]
+        )
+        stream = "\n".join(commands)
+        content_id = add_object(f"<< /Length {len(stream.encode('cp1252', errors='replace'))} >>\nstream\n{stream}\nendstream")
+        page_id = add_object(
+            f"<< /Type /Page /Parent 0 0 R /MediaBox [0 0 {page_width} {page_height}] "
+            f"/Resources << /Font << /F1 {font_id} 0 R >> >> /Contents {content_id} 0 R >>"
+        )
+        page_ids.append(page_id)
+
+    pages_id = len(objects) + 1
+    for page_id in page_ids:
+        objects[page_id - 1] = objects[page_id - 1].replace("/Parent 0 0 R", f"/Parent {pages_id} 0 R")
+    kids = " ".join(f"{page_id} 0 R" for page_id in page_ids)
+    add_object(f"<< /Type /Pages /Kids [{kids}] /Count {len(page_ids)} >>")
+    catalog_id = add_object(f"<< /Type /Catalog /Pages {pages_id} 0 R >>")
+
+    output = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for index, content in enumerate(objects, start=1):
+        offsets.append(len(output))
+        output.extend(f"{index} 0 obj\n".encode("ascii"))
+        output.extend(content.encode("cp1252", errors="replace"))
+        output.extend(b"\nendobj\n")
+
+    xref_offset = len(output)
+    output.extend(f"xref\n0 {len(objects) + 1}\n".encode("ascii"))
+    output.extend(b"0000000000 65535 f \n")
+    for offset in offsets[1:]:
+        output.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+    output.extend(
+        (
+            "trailer\n"
+            f"<< /Size {len(objects) + 1} /Root {catalog_id} 0 R >>\n"
+            "startxref\n"
+            f"{xref_offset}\n"
+            "%%EOF\n"
+        ).encode("ascii")
+    )
+    return bytes(output)
+
+
+def export_school_pdf():
+    paths = _ceara_asset_paths()
+    paths["data_dir"].mkdir(parents=True, exist_ok=True)
+    data = get_territorial_data()
+    summary = data["summary"]
+    rows = _school_export_rows(data)
+    lines = [
+        f"Fonte: {data['source']}",
+        f"Municipios com dados: {summary['municipalities_with_data']} de {summary['municipalities_total']}",
+        f"Total de escolas: {_format_number(summary['schools_total'])}",
+        f"Total de alunos: {_format_number(summary['students_total'])}",
+        "",
+        f"{'Municipio':<28} {'Escolas':>8} {'Alunos':>10} {'Al./esc.':>8}",
+        "-" * 60,
+    ]
+
+    for row in rows:
+        lines.append(
+            f"{_pdf_cell(row['municipio'], 28):<28} "
+            f"{_format_number(row['escolas']):>8} "
+            f"{_format_number(row['alunos']):>10} "
+            f"{_format_number(row['alunos_por_escola']):>8}"
+        )
+
+    paths["pdf"].write_bytes(_simple_pdf("Escolas por municipio do Ceara", lines))
+    return paths["pdf"]
 
 
 def _coordinate_bounds(geojson):
@@ -922,6 +1093,18 @@ def home():
 def ceara_municipalities_kml():
     kml_path = export_school_kml()
     return send_file(kml_path, mimetype="application/vnd.google-earth.kml+xml", as_attachment=True)
+
+
+@app.route("/dados/ceara-municipios.csv")
+def ceara_municipalities_csv():
+    csv_path = export_school_csv()
+    return send_file(csv_path, mimetype="text/csv", as_attachment=True)
+
+
+@app.route("/dados/ceara-municipios.pdf")
+def ceara_municipalities_pdf():
+    pdf_path = export_school_pdf()
+    return send_file(pdf_path, mimetype="application/pdf", as_attachment=True)
 
 
 @app.route("/api/dashboard")

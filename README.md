@@ -25,7 +25,8 @@ python3 build_static.py
 Isso atualiza:
 
 - `docs/index.html`
-- `docs/ceara_municipios.kml`
+- `docs/ceara_municipios.pdf`
+- `docs/ceara_municipios.csv`
 
 ## Publicar online no GitHub Pages
 

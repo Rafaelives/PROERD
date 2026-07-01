@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from main import app, export_school_kml, get_territorial_data
+from main import app, export_school_csv, export_school_pdf, get_territorial_data
 
 
 def build_static_site():
@@ -8,14 +8,19 @@ def build_static_site():
     docs_dir = project_dir / "docs"
     docs_dir.mkdir(exist_ok=True)
 
-    kml_path = export_school_kml()
-    target_kml = docs_dir / "ceara_municipios.kml"
-    target_kml.write_text(kml_path.read_text(encoding="utf-8"), encoding="utf-8")
+    csv_path = export_school_csv()
+    target_csv = docs_dir / "ceara_municipios.csv"
+    target_csv.write_text(csv_path.read_text(encoding="utf-8-sig"), encoding="utf-8-sig")
+
+    pdf_path = export_school_pdf()
+    target_pdf = docs_dir / "ceara_municipios.pdf"
+    target_pdf.write_bytes(pdf_path.read_bytes())
 
     with app.app_context():
         html = app.jinja_env.get_template("index.html").render(
             map_page=get_territorial_data(),
-            kml_href="ceara_municipios.kml",
+            csv_href="ceara_municipios.csv",
+            pdf_href="ceara_municipios.pdf",
         )
 
     (docs_dir / "index.html").write_text(html, encoding="utf-8")
