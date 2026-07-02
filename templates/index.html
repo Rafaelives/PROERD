@@ -93,7 +93,7 @@
         .content-grid {
             display: grid;
             grid-template-columns: 320px minmax(0, 1fr) 420px;
-            grid-template-areas: "sidebar map details";
+            grid-template-areas: "sidebar workspace details";
             gap: 14px;
             min-height: 0;
         }
@@ -116,8 +116,13 @@
             grid-area: sidebar;
         }
 
-        .map-shell {
-            grid-area: map;
+        .workspace {
+            grid-area: workspace;
+            display: grid;
+            grid-template-rows: auto auto;
+            align-content: start;
+            gap: 14px;
+            min-width: 0;
         }
 
         .details {
@@ -244,7 +249,8 @@
 
         .map-shell {
             position: relative;
-            min-height: calc(100vh - 184px);
+            height: clamp(420px, 54vh, 620px);
+            min-height: 420px;
             overflow: hidden;
         }
 
@@ -356,10 +362,19 @@
 
         .chart-grid {
             display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
             gap: 12px;
+            min-width: 0;
+        }
+
+        .charts-section {
+            min-width: 0;
+            overflow: hidden;
+            padding: 14px;
         }
 
         .chart-card {
+            min-width: 0;
             min-height: 246px;
             border-radius: 8px;
             background: var(--panel);
@@ -377,6 +392,7 @@
         }
 
         .chart-scroll {
+            max-width: 100%;
             overflow-x: auto;
             overflow-y: hidden;
             padding: 0 2px 8px;
@@ -532,7 +548,7 @@
             .content-grid {
                 grid-template-columns: 300px minmax(0, 1fr);
                 grid-template-areas:
-                    "sidebar map"
+                    "sidebar workspace"
                     "details details";
             }
 
@@ -549,7 +565,7 @@
             .content-grid {
                 grid-template-columns: minmax(210px, 0.72fr) minmax(0, 1.28fr);
                 grid-template-areas:
-                    "sidebar map"
+                    "sidebar workspace"
                     "details details";
                 gap: 12px;
             }
@@ -570,8 +586,8 @@
             }
 
             .map-shell {
-                min-height: auto;
-                height: 62vh;
+                min-height: 360px;
+                height: 58vh;
             }
 
             .chart-grid {
@@ -593,9 +609,9 @@
             }
 
             .content-grid {
-                grid-template-columns: minmax(146px, 0.82fr) minmax(0, 1.18fr);
+                grid-template-columns: minmax(136px, 0.76fr) minmax(0, 1.24fr);
                 grid-template-areas:
-                    "sidebar map"
+                    "sidebar workspace"
                     "details details";
                 gap: 8px;
             }
@@ -607,18 +623,6 @@
             .sidebar,
             .details {
                 padding: 9px;
-            }
-
-            .details {
-                display: grid;
-                grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-                gap: 8px;
-                align-items: start;
-            }
-
-            .selected-title,
-            .selected-subtitle {
-                grid-column: 1 / -1;
             }
 
             .source {
@@ -670,7 +674,12 @@
             }
 
             .map-shell {
-                height: 64vh;
+                min-height: 320px;
+                height: 56vh;
+            }
+
+            .charts-section {
+                padding: 9px;
             }
 
             .map-toolbar {
@@ -706,8 +715,7 @@
             }
 
             .detail-list {
-                grid-column: 1;
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 margin-bottom: 0;
             }
 
@@ -715,28 +723,6 @@
                 grid-template-columns: 1fr;
                 gap: 3px;
                 padding: 8px;
-            }
-
-            .selected-cities {
-                grid-column: 1;
-            }
-
-            .charts-section {
-                grid-column: 2;
-                grid-row: 3 / span 4;
-                margin-top: 0;
-                padding-top: 0;
-                border-top: 0;
-            }
-
-            .ranking-section {
-                grid-column: 1;
-            }
-
-            .table-title,
-            .table-wrap,
-            .unmatched-section {
-                grid-column: 1 / -1;
             }
 
             .chart-card {
@@ -836,29 +822,23 @@
                 <a class="download-link" href="{{ csv_href|default('/dados/ceara-municipios.csv') }}">Baixar CSV</a>
             </aside>
 
-            <main class="map-shell panel">
-                <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
-                <div class="map-toolbar">
-                    <input class="search" id="searchInput" placeholder="Buscar município">
-                    <div class="status" id="activeFilter">Todos os municípios</div>
-                </div>
-                <div class="legend">
-                    Intensidade
-                    <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Baixa</div>
-                    <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Média</div>
-                    <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
-                    <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
-                </div>
-            </main>
+            <main class="workspace">
+                <section class="map-shell panel">
+                    <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
+                    <div class="map-toolbar">
+                        <input class="search" id="searchInput" placeholder="Buscar município">
+                        <div class="status" id="activeFilter">Todos os municípios</div>
+                    </div>
+                    <div class="legend">
+                        Intensidade
+                        <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Baixa</div>
+                        <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Média</div>
+                        <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
+                        <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
+                    </div>
+                </section>
 
-            <aside class="details panel">
-                <h2 class="selected-title" id="selectedTitle">Ceará</h2>
-                <p class="selected-subtitle" id="selectedSubtitle">Resumo da aba DADOS</p>
-
-                <section class="detail-list" id="detailList"></section>
-                <div class="selected-cities" id="selectedCities"></div>
-
-                <section class="section charts-section">
+                <section class="charts-section panel">
                     <p class="section-title">Gráficos</p>
                     <div class="chart-grid">
                         <div class="chart-card chart-card-wide">
@@ -875,6 +855,14 @@
                         </div>
                     </div>
                 </section>
+            </main>
+
+            <aside class="details panel">
+                <h2 class="selected-title" id="selectedTitle">Ceará</h2>
+                <p class="selected-subtitle" id="selectedSubtitle">Resumo da aba DADOS</p>
+
+                <section class="detail-list" id="detailList"></section>
+                <div class="selected-cities" id="selectedCities"></div>
 
                 <section class="section ranking-section">
                     <p class="section-title">Dashboard de quantidades</p>
