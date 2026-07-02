@@ -360,7 +360,7 @@
         }
 
         .chart-card {
-            min-height: 214px;
+            min-height: 246px;
             border-radius: 8px;
             background: var(--panel);
             padding: 12px;
@@ -369,7 +369,7 @@
 
         .chart-card canvas {
             width: 100% !important;
-            height: 174px !important;
+            height: 206px !important;
         }
 
         .treemap {
@@ -676,11 +676,11 @@
             }
 
             .chart-card {
-                min-height: 236px;
+                min-height: 260px;
             }
 
             .chart-card canvas {
-                height: 196px !important;
+                height: 220px !important;
             }
 
             .treemap {
@@ -1075,6 +1075,29 @@
             return text.length > size ? `${text.slice(0, size - 1)}.` : text;
         }
 
+        function axisLabel(value) {
+            const words = String(value || "").split(/\s+/).filter(Boolean);
+            const lines = [];
+            let current = "";
+            words.forEach((word) => {
+                const candidate = current ? `${current} ${word}` : word;
+                if (candidate.length <= 10) {
+                    current = candidate;
+                } else {
+                    if (current) {
+                        lines.push(current);
+                    }
+                    current = word;
+                }
+            });
+            if (current) {
+                lines.push(current);
+            }
+            return lines.slice(0, 2).map((line, index) => (
+                index === 1 && lines.length > 2 ? shortLabel(line, 9) : shortLabel(line, 10)
+            ));
+        }
+
         function renderColumnChart(rows) {
             if (!window.Chart) {
                 return;
@@ -1082,7 +1105,7 @@
             const ctx = document.getElementById("columnChart");
             const labels = rows.map((row) => row.municipio_mapeado || row.municipio_tabela);
             const data = {
-                labels: labels.map((label) => shortLabel(label, 11)),
+                labels: labels.map(axisLabel),
                 datasets: [
                     {
                         label: "Escolas",
@@ -1113,7 +1136,15 @@
                     maintainAspectRatio: false,
                     interaction: { mode: "index", intersect: false },
                     plugins: {
-                        legend: { position: "bottom" },
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                padding: 10,
+                                usePointStyle: true
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 title(items) {
@@ -1126,7 +1157,14 @@
                         }
                     },
                     scales: {
-                        x: { ticks: { maxRotation: 0, autoSkip: false, font: { size: 10 } } },
+                        x: {
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: false,
+                                font: { size: 10 },
+                                padding: 6
+                            }
+                        },
                         students: {
                             beginAtZero: true,
                             position: "left",
@@ -1223,7 +1261,7 @@
 
         function renderCharts() {
             const rows = chartRows(12);
-            renderColumnChart(rows.slice(0, 8));
+            renderColumnChart(rows.slice(0, 6));
             renderScatterChart(chartRows(30));
             renderTreemap(rows);
         }
