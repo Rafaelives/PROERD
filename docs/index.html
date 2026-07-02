@@ -3,22 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escolas por Município</title>
+    <title>PROERD - Demonstrativo Territorial</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --bg: #eef3f5;
-            --panel: #fbfdfe;
-            --line: #ced9df;
-            --text: #20262d;
-            --muted: #66737f;
+            --bg: #e8eef2;
+            --panel: #edf3f6;
+            --panel-strong: #f7fbfc;
+            --line: #c7d3da;
+            --text: #202832;
+            --muted: #64717d;
             --green: #087f7a;
-            --blue: #1f7acb;
-            --yellow: #f0b429;
-            --red: #cc4b37;
-            --empty: #d8e0e5;
-            --shadow: 0 10px 24px rgba(42, 65, 76, 0.16);
+            --blue: #256fba;
+            --yellow: #e7aa25;
+            --red: #c54b3c;
+            --ink: #16323a;
+            --empty: #d5dde2;
+            --shadow-out: 10px 10px 24px rgba(133, 153, 164, 0.42), -10px -10px 24px rgba(255, 255, 255, 0.86);
+            --shadow-in: inset 6px 6px 13px rgba(138, 157, 168, 0.35), inset -6px -6px 13px rgba(255, 255, 255, 0.9);
         }
 
         * {
@@ -33,65 +37,125 @@
             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
+        button,
+        input {
+            font: inherit;
+        }
+
         .app {
             display: grid;
-            grid-template-columns: 320px minmax(0, 1fr) 380px;
-            gap: 12px;
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 14px;
             min-height: 100vh;
-            padding: 12px;
+            padding: 14px;
+        }
+
+        .hero-band {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            align-items: center;
+            text-align: center;
+            gap: 18px;
+            min-height: 128px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(8, 127, 122, 0.92), rgba(22, 50, 58, 0.94)),
+                radial-gradient(circle at 88% 20%, rgba(231, 170, 37, 0.48), transparent 26%);
+            color: #fff;
+            padding: 22px 26px;
+            box-shadow: var(--shadow-out);
+        }
+
+        .hero-kicker {
+            margin: 0 0 7px;
+            color: rgba(255, 255, 255, 0.76);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            margin: 0;
+            font-size: clamp(26px, 4vw, 44px);
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .hero-subtitle {
+            max-width: 760px;
+            margin: 10px auto 0;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr) 420px;
+            grid-template-areas: "sidebar map details";
+            gap: 14px;
+            min-height: 0;
         }
 
         .panel {
-            border: 1px solid var(--line);
+            border: 1px solid rgba(255, 255, 255, 0.78);
             border-radius: 8px;
             background: var(--panel);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-out);
         }
 
         .sidebar,
         .details {
-            min-height: calc(100vh - 24px);
-            padding: 14px;
+            min-height: calc(100vh - 184px);
+            padding: 16px;
             overflow: auto;
         }
 
-        .title {
-            margin: 0 0 4px;
-            font-size: 22px;
-            line-height: 1.08;
+        .sidebar {
+            grid-area: sidebar;
+        }
+
+        .map-shell {
+            grid-area: map;
+        }
+
+        .details {
+            grid-area: details;
         }
 
         .source {
             margin: 0 0 14px;
             color: var(--muted);
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 900;
         }
 
         .metrics {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
         .metric {
-            min-height: 74px;
-            border: 1px solid var(--line);
-            border-radius: 7px;
-            background: #fff;
-            padding: 10px;
+            min-height: 82px;
+            border-radius: 8px;
+            background: var(--panel);
+            padding: 12px;
+            box-shadow: var(--shadow-in);
         }
 
         .metric strong {
             display: block;
-            font-size: 25px;
+            color: var(--ink);
+            font-size: 27px;
             line-height: 1;
         }
 
         .metric span {
             display: block;
-            margin-top: 7px;
+            margin-top: 8px;
             color: var(--muted);
             font-size: 12px;
             font-weight: 900;
@@ -99,12 +163,13 @@
 
         .section {
             border-top: 1px solid var(--line);
-            margin-top: 12px;
-            padding-top: 12px;
+            margin-top: 14px;
+            padding-top: 14px;
         }
 
         .section-title {
-            margin: 0 0 8px;
+            margin: 0 0 9px;
+            color: var(--ink);
             font-size: 12px;
             font-weight: 900;
             letter-spacing: 0;
@@ -112,39 +177,61 @@
         }
 
         .chip-list,
-        .mode-row {
+        .mode-row,
+        .selected-cities {
             display: flex;
             flex-wrap: wrap;
-            gap: 7px;
+            gap: 8px;
         }
 
         .chip-list {
-            max-height: 150px;
+            max-height: 160px;
             overflow: auto;
-            padding-right: 2px;
+            padding: 4px 5px 4px 0;
         }
 
+        .neo-button,
         .chip,
         .mode-button,
         .clear-button,
         .download-link {
-            border: 1px solid #b8c6cd;
-            border-radius: 7px;
-            background: #fff;
+            border: 0;
+            border-radius: 8px;
+            background: var(--panel);
             color: #26313a;
             cursor: pointer;
-            font: inherit;
             font-size: 12px;
             font-weight: 900;
-            padding: 8px 10px;
+            line-height: 1.1;
+            padding: 10px 12px;
             text-decoration: none;
+            box-shadow: 6px 6px 13px rgba(133, 153, 164, 0.38), -6px -6px 13px rgba(255, 255, 255, 0.92);
+            transition: transform 160ms ease, box-shadow 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .neo-button:hover,
+        .chip:hover,
+        .mode-button:hover,
+        .clear-button:hover,
+        .download-link:hover {
+            transform: translateY(-1px);
+        }
+
+        .neo-button:active,
+        .chip:active,
+        .mode-button:active,
+        .clear-button:active,
+        .download-link:active,
+        .chip.active,
+        .mode-button.active {
+            color: var(--green);
+            box-shadow: var(--shadow-in);
+            transform: translateY(0);
         }
 
         .chip.active,
         .mode-button.active {
-            border-color: var(--green);
-            background: var(--green);
-            color: #fff;
+            background: #e3ecef;
         }
 
         .clear-button,
@@ -153,13 +240,11 @@
             justify-content: center;
             width: 100%;
             margin-top: 10px;
-            color: var(--green);
-            border-color: var(--green);
         }
 
         .map-shell {
             position: relative;
-            min-height: calc(100vh - 24px);
+            min-height: calc(100vh - 184px);
             overflow: hidden;
         }
 
@@ -176,36 +261,36 @@
             z-index: 500;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: 8px;
+            gap: 10px;
             pointer-events: none;
         }
 
         .search,
-        .status {
-            border: 1px solid var(--line);
-            border-radius: 7px;
-            background: rgba(255, 255, 255, 0.96);
-            box-shadow: 0 4px 12px rgba(28, 48, 58, 0.12);
+        .status,
+        .legend {
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 8px;
+            background: rgba(237, 243, 246, 0.94);
+            box-shadow: 6px 6px 14px rgba(52, 74, 85, 0.18), -6px -6px 14px rgba(255, 255, 255, 0.82);
             pointer-events: auto;
         }
 
         .search {
             min-width: 0;
-            height: 42px;
+            height: 44px;
             color: var(--text);
-            font: inherit;
-            padding: 0 12px;
+            padding: 0 13px;
         }
 
         .status {
             display: inline-flex;
             align-items: center;
-            min-width: 190px;
+            min-width: 210px;
             justify-content: center;
             color: var(--green);
             font-size: 13px;
             font-weight: 900;
-            padding: 0 12px;
+            padding: 0 13px;
         }
 
         .legend {
@@ -213,21 +298,17 @@
             right: 12px;
             bottom: 18px;
             z-index: 500;
-            border: 1px solid var(--line);
-            border-radius: 7px;
-            background: rgba(255, 255, 255, 0.96);
             color: var(--muted);
             font-size: 12px;
-            font-weight: 800;
-            padding: 10px;
-            box-shadow: 0 4px 12px rgba(28, 48, 58, 0.12);
+            font-weight: 900;
+            padding: 11px;
         }
 
         .legend-row {
             display: flex;
             align-items: center;
             gap: 7px;
-            margin-top: 6px;
+            margin-top: 7px;
         }
 
         .swatch {
@@ -239,15 +320,16 @@
 
         .selected-title {
             margin: 0;
-            font-size: 22px;
+            color: var(--ink);
+            font-size: 24px;
             line-height: 1.1;
         }
 
         .selected-subtitle {
-            margin: 5px 0 14px;
+            margin: 6px 0 14px;
             color: var(--muted);
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 900;
         }
 
         .detail-list {
@@ -258,16 +340,77 @@
 
         .detail-row {
             display: grid;
-            grid-template-columns: 110px minmax(0, 1fr);
+            grid-template-columns: 118px minmax(0, 1fr);
             gap: 8px;
-            border-bottom: 1px solid #e1e8ec;
-            padding-bottom: 7px;
+            border-radius: 8px;
+            background: var(--panel-strong);
+            padding: 9px 10px;
             font-size: 13px;
+            box-shadow: var(--shadow-in);
         }
 
         .detail-row span:first-child {
             color: var(--muted);
             font-weight: 900;
+        }
+
+        .chart-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .chart-card {
+            min-height: 214px;
+            border-radius: 8px;
+            background: var(--panel);
+            padding: 12px;
+            box-shadow: var(--shadow-in);
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            height: 174px !important;
+        }
+
+        .treemap {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: stretch;
+            gap: 6px;
+            height: 182px;
+            min-height: 182px;
+        }
+
+        .tree-tile {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            flex: 1 1 80px;
+            min-width: 0;
+            min-height: 54px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: var(--green);
+            color: #fff;
+            padding: 8px;
+        }
+
+        .tree-tile strong,
+        .tree-tile span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tree-tile strong {
+            font-size: 12px;
+        }
+
+        .tree-tile span {
+            margin-top: 2px;
+            font-size: 11px;
+            font-weight: 800;
+            opacity: 0.86;
         }
 
         .rank-panel {
@@ -294,31 +437,34 @@
         .rank-track {
             height: 18px;
             overflow: hidden;
-            border-radius: 4px;
-            background: #e1e8ec;
+            border-radius: 8px;
+            background: #dce6ea;
+            box-shadow: var(--shadow-in);
         }
 
         .rank-fill {
             display: block;
             height: 100%;
             min-width: 2px;
-            background: var(--green);
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--green), var(--blue));
         }
 
         .rank-value {
-            border-radius: 4px;
-            background: #fff;
+            border-radius: 8px;
+            background: var(--panel);
             padding: 4px 5px;
             text-align: center;
             font-weight: 900;
+            box-shadow: var(--shadow-in);
         }
 
         .table-wrap {
             max-height: 330px;
             overflow: auto;
-            border: 1px solid var(--line);
-            border-radius: 7px;
-            background: #fff;
+            border-radius: 8px;
+            background: var(--panel);
+            box-shadow: var(--shadow-in);
         }
 
         table {
@@ -329,7 +475,7 @@
 
         th,
         td {
-            border-bottom: 1px solid #e5ecef;
+            border-bottom: 1px solid #d7e1e6;
             padding: 8px;
             text-align: left;
             white-space: nowrap;
@@ -339,7 +485,7 @@
             position: sticky;
             top: 0;
             z-index: 1;
-            background: #f3f7f9;
+            background: #e7eff3;
             font-weight: 900;
         }
 
@@ -347,135 +493,340 @@
             color: var(--muted);
         }
 
-        @media (max-width: 1180px) {
-            .app {
-                grid-template-columns: 290px minmax(0, 1fr);
+        @media (max-width: 1240px) {
+            .content-grid {
+                grid-template-columns: 300px minmax(0, 1fr);
+                grid-template-areas:
+                    "sidebar map"
+                    "details details";
             }
 
             .details {
-                grid-column: 1 / -1;
                 min-height: auto;
+            }
+
+            .chart-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
-        @media (max-width: 820px) {
-            .app {
-                grid-template-columns: 1fr;
+        @media (max-width: 920px) {
+            .content-grid {
+                grid-template-columns: minmax(210px, 0.72fr) minmax(0, 1.28fr);
+                grid-template-areas:
+                    "sidebar map"
+                    "details details";
+                gap: 12px;
+            }
+
+            .hero-band {
+                min-height: 104px;
+                padding: 18px;
+            }
+
+            .hero-title {
+                font-size: clamp(22px, 5vw, 34px);
             }
 
             .sidebar,
-            .map-shell,
             .details {
                 min-height: auto;
+                padding: 12px;
             }
 
             .map-shell {
-                height: 68vh;
+                min-height: auto;
+                height: 62vh;
+            }
+
+            .chart-grid {
+                grid-template-columns: repeat(3, minmax(230px, 1fr));
+                overflow-x: auto;
+                padding: 2px 4px 10px;
+                scroll-snap-type: x proximity;
+            }
+
+            .chart-card {
+                scroll-snap-align: start;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .app {
+                gap: 10px;
+                padding: 8px;
+            }
+
+            .hero-band {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                min-height: auto;
+                padding: 14px;
+            }
+
+            .content-grid {
+                grid-template-columns: minmax(146px, 0.82fr) minmax(0, 1.18fr);
+                grid-template-areas:
+                    "sidebar map"
+                    "details details";
+                gap: 8px;
+            }
+
+            .panel {
+                box-shadow: 5px 5px 14px rgba(133, 153, 164, 0.34), -5px -5px 14px rgba(255, 255, 255, 0.86);
+            }
+
+            .sidebar,
+            .details {
+                padding: 9px;
+            }
+
+            .source {
+                font-size: 10px;
+                margin-bottom: 9px;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+                gap: 7px;
+                margin-bottom: 10px;
+            }
+
+            .metric {
+                min-height: 58px;
+                padding: 9px;
+            }
+
+            .metric strong {
+                font-size: 20px;
+            }
+
+            .metric span,
+            .section-title,
+            .chip,
+            .mode-button,
+            .clear-button,
+            .download-link,
+            .neo-button {
+                font-size: 10px;
+            }
+
+            .section {
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+
+            .chip-list {
+                max-height: 112px;
+                gap: 6px;
+            }
+
+            .chip,
+            .mode-button,
+            .clear-button,
+            .download-link,
+            .neo-button {
+                padding: 8px 9px;
+            }
+
+            .map-shell {
+                height: 64vh;
+            }
+
+            .map-toolbar {
+                grid-template-columns: 1fr;
+                top: 8px;
+                right: 8px;
+                left: 8px;
+                gap: 6px;
+            }
+
+            .search {
+                height: 38px;
+                padding: 0 10px;
+                font-size: 12px;
+            }
+
+            .status {
+                min-width: 0;
+                height: 36px;
+                font-size: 11px;
+                padding: 0 8px;
+            }
+
+            .legend {
+                right: 8px;
+                bottom: 10px;
+                font-size: 10px;
+                padding: 8px;
+            }
+
+            .selected-title {
+                font-size: 20px;
+            }
+
+            .detail-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .detail-row {
+                grid-template-columns: 1fr;
+                gap: 3px;
+                padding: 8px;
+            }
+
+            .chart-card {
+                min-height: 236px;
+            }
+
+            .chart-card canvas {
+                height: 196px !important;
+            }
+
+            .treemap {
+                height: 202px;
+                min-height: 202px;
+            }
+
+            .rank-row {
+                grid-template-columns: minmax(82px, 110px) minmax(0, 1fr) 48px;
+            }
+
+            th,
+            td {
+                padding: 7px 6px;
             }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <aside class="sidebar panel">
-            <h1 class="title">Escolas por Município</h1>
-            <p class="source">Análise.xlsx / aba DADOS</p>
+        <header class="hero-band">
+            <div>
+                <p class="hero-kicker">Demonstrativo territorial</p>
+                <h1 class="hero-title">PROERD - GEOLOCALIZAÇÃO</h1>
+            </div>
+        </header>
 
-            <section class="metrics">
-                <div class="metric">
-                    <strong id="metricSchools">207</strong>
-                    <span>Escolas</span>
+        <div class="content-grid">
+            <aside class="sidebar panel">
+                <p class="source">Análise.xlsx / aba DADOS</p>
+
+                <section class="metrics">
+                    <div class="metric">
+                        <strong id="metricSchools">207</strong>
+                        <span>Escolas</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="metricStudents">19411</strong>
+                        <span>Alunos</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="metricCities">46</strong>
+                        <span>Municípios</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="metricAverage">0</strong>
+                        <span>Alunos por escola</span>
+                    </div>
+                </section>
+
+                <div class="section">
+                    <p class="section-title">Cor do mapa</p>
+                    <div class="mode-row">
+                        <button class="mode-button active" data-mode="escolas">Escolas</button>
+                        <button class="mode-button" data-mode="alunos">Alunos</button>
+                    </div>
                 </div>
-                <div class="metric">
-                    <strong id="metricStudents">19411</strong>
-                    <span>Alunos</span>
+
+                <div class="section">
+                    <p class="section-title">Faixa de escolas</p>
+                    <div class="chip-list" id="schoolRangeFilters"></div>
                 </div>
-                <div class="metric">
-                    <strong id="metricCities">46</strong>
-                    <span>Municípios</span>
+
+                <div class="section">
+                    <p class="section-title">Faixa de alunos</p>
+                    <div class="chip-list" id="studentRangeFilters"></div>
                 </div>
-                <div class="metric">
-                    <strong id="metricAverage">0</strong>
-                    <span>Alunos por escola</span>
+
+                <div class="section">
+                    <p class="section-title">Municípios para cálculo</p>
+                    <div class="chip-list" id="cityFilters"></div>
                 </div>
-            </section>
 
-            <div class="section">
-                <p class="section-title">Cor do mapa</p>
-                <div class="mode-row">
-                    <button class="mode-button active" data-mode="escolas">Escolas</button>
-                    <button class="mode-button" data-mode="alunos">Alunos</button>
+                <button class="clear-button" id="clearFilters">Limpar filtros</button>
+                <a class="download-link" href="ceara_municipios.pdf">Baixar PDF</a>
+                <a class="download-link" href="ceara_municipios.csv">Baixar CSV</a>
+            </aside>
+
+            <main class="map-shell panel">
+                <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
+                <div class="map-toolbar">
+                    <input class="search" id="searchInput" placeholder="Buscar município">
+                    <div class="status" id="activeFilter">Todos os municípios</div>
                 </div>
-            </div>
+                <div class="legend">
+                    Intensidade
+                    <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Baixa</div>
+                    <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Média</div>
+                    <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
+                    <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
+                </div>
+            </main>
 
-            <div class="section">
-                <p class="section-title">Faixa de escolas</p>
-                <div class="chip-list" id="schoolRangeFilters"></div>
-            </div>
+            <aside class="details panel">
+                <h2 class="selected-title" id="selectedTitle">Ceará</h2>
+                <p class="selected-subtitle" id="selectedSubtitle">Resumo da aba DADOS</p>
 
-            <div class="section">
-                <p class="section-title">Faixa de alunos</p>
-                <div class="chip-list" id="studentRangeFilters"></div>
-            </div>
+                <section class="detail-list" id="detailList"></section>
+                <div class="selected-cities" id="selectedCities"></div>
 
-            <div class="section">
-                <p class="section-title">Município</p>
-                <div class="chip-list" id="cityFilters"></div>
-            </div>
+                <section class="section">
+                    <p class="section-title">Gráficos</p>
+                    <div class="chart-grid">
+                        <div class="chart-card">
+                            <p class="section-title">Colunas - Top municípios</p>
+                            <canvas id="columnChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <p class="section-title">Dispersão - Alunos por escola</p>
+                            <canvas id="scatterChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <p class="section-title">Treemap - Participação de alunos</p>
+                            <div class="treemap" id="treemapChart"></div>
+                        </div>
+                    </div>
+                </section>
 
-            <button class="clear-button" id="clearFilters">Limpar filtros</button>
-            <a class="download-link" href="ceara_municipios.pdf">Baixar PDF</a>
-            <a class="download-link" href="ceara_municipios.csv">Baixar CSV</a>
-        </aside>
+                <section class="section">
+                    <p class="section-title">Dashboard de quantidades</p>
+                    <div class="rank-panel" id="schoolRanking"></div>
+                    <div class="rank-panel" id="studentRanking"></div>
+                    <div class="rank-panel" id="averageRanking"></div>
+                </section>
 
-        <main class="map-shell panel">
-            <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
-            <div class="map-toolbar">
-                <input class="search" id="searchInput" placeholder="Buscar município">
-                <div class="status" id="activeFilter">Todos os municípios</div>
-            </div>
-            <div class="legend">
-                Intensidade
-                <div class="legend-row"><span class="swatch" style="background: #f0b429"></span>Baixa</div>
-                <div class="legend-row"><span class="swatch" style="background: #1f7acb"></span>Média</div>
-                <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
-                <div class="legend-row"><span class="swatch" style="background: #d8e0e5"></span>Sem dados</div>
-            </div>
-        </main>
+                <p class="section-title">Tabela filtrada</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Município</th>
+                                <th>Escolas</th>
+                                <th>Alunos</th>
+                                <th>Alunos/Escola</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTable"></tbody>
+                    </table>
+                </div>
 
-        <aside class="details panel">
-            <h2 class="selected-title" id="selectedTitle">Ceará</h2>
-            <p class="selected-subtitle" id="selectedSubtitle">Resumo da aba DADOS</p>
-
-            <section class="detail-list" id="detailList"></section>
-
-            <section class="section">
-                <p class="section-title">Dashboard de quantidades</p>
-                <div class="rank-panel" id="schoolRanking"></div>
-                <div class="rank-panel" id="studentRanking"></div>
-                <div class="rank-panel" id="averageRanking"></div>
-            </section>
-
-            <p class="section-title">Tabela filtrada</p>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Município</th>
-                            <th>Escolas</th>
-                            <th>Alunos</th>
-                            <th>Alunos/Escola</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recordsTable"></tbody>
-                </table>
-            </div>
-
-            <div class="section">
-                <p class="section-title">Não mapeados</p>
-                <div class="muted" id="unmatchedText"></div>
-            </div>
-        </aside>
+                <div class="section">
+                    <p class="section-title">Não mapeados</p>
+                    <div class="muted" id="unmatchedText"></div>
+                </div>
+            </aside>
+        </div>
     </div>
 
     <script>
@@ -485,10 +836,13 @@
             filters: {
                 faixa_escolas: null,
                 faixa_alunos: null,
-                municipio_mapeado: null
+                municipio_mapeado: []
             },
-            search: "",
-            selectedFeature: null
+            search: ""
+        };
+        const charts = {
+            column: null,
+            scatter: null
         };
         let geoJsonLayer;
 
@@ -507,11 +861,19 @@
                 .toLowerCase();
         }
 
+        function selectedCities() {
+            return state.filters.municipio_mapeado;
+        }
+
         function rowMatches(row) {
-            for (const [field, value] of Object.entries(state.filters)) {
-                if (value && row[field] !== value) {
-                    return false;
-                }
+            if (state.filters.faixa_escolas && row.faixa_escolas !== state.filters.faixa_escolas) {
+                return false;
+            }
+            if (state.filters.faixa_alunos && row.faixa_alunos !== state.filters.faixa_alunos) {
+                return false;
+            }
+            if (selectedCities().length && !selectedCities().includes(row.municipio_mapeado)) {
+                return false;
             }
             if (!state.search) {
                 return true;
@@ -549,7 +911,7 @@
         function fillColor(feature) {
             const dados = feature.properties.dados;
             if (!dados.has_data) {
-                return "#d8e0e5";
+                return "#d5dde2";
             }
             const value = metricValue(feature);
             const ratio = maxMetric() ? value / maxMetric() : 0;
@@ -560,25 +922,27 @@
                 return "#087f7a";
             }
             if (ratio >= 0.33) {
-                return "#1f7acb";
+                return "#256fba";
             }
-            return "#f0b429";
+            return "#e7aa25";
         }
 
         function layerStyle(feature) {
             const dimmed = (hasActiveFilters() || state.search) && !featureMatches(feature);
             return {
-                color: dimmed ? "#acbac1" : "#34535d",
-                weight: featureMatches(feature) ? 2.2 : 1,
+                color: dimmed ? "#a9b8bf" : "#34535d",
+                weight: featureMatches(feature) ? 2.6 : 1,
                 fillColor: fillColor(feature),
-                fillOpacity: dimmed ? 0.18 : 0.74
+                fillOpacity: dimmed ? 0.18 : 0.76
             };
         }
 
         function renderFilterGroup(containerId, field, options) {
             const container = document.getElementById(containerId);
             container.innerHTML = options.map((item) => {
-                const active = state.filters[field] === item.label;
+                const active = field === "municipio_mapeado"
+                    ? selectedCities().includes(item.label)
+                    : state.filters[field] === item.label;
                 return `
                     <button class="chip ${active ? "active" : ""}" data-field="${field}" data-value="${item.label}">
                         ${item.label} · ${formatNumber(item.count)}
@@ -587,17 +951,25 @@
             }).join("");
         }
 
+        function toggleCity(city) {
+            const cities = selectedCities();
+            if (cities.includes(city)) {
+                state.filters.municipio_mapeado = cities.filter((item) => item !== city);
+            } else {
+                state.filters.municipio_mapeado = [...cities, city];
+            }
+        }
+
         function bindFilterButtons() {
             document.querySelectorAll(".chip").forEach((button) => {
                 button.addEventListener("click", () => {
                     const field = button.dataset.field;
                     const value = button.dataset.value;
-                    if (state.filters[field] === value) {
-                        state.filters[field] = null;
+                    if (field === "municipio_mapeado") {
+                        toggleCity(value);
                     } else {
-                        state.filters[field] = value;
+                        state.filters[field] = state.filters[field] === value ? null : value;
                     }
-                    state.selectedFeature = null;
                     updateView();
                 });
             });
@@ -611,7 +983,17 @@
         }
 
         function activeFilterLabels() {
-            return Object.values(state.filters).filter(Boolean);
+            const labels = [];
+            if (state.filters.faixa_escolas) {
+                labels.push(state.filters.faixa_escolas);
+            }
+            if (state.filters.faixa_alunos) {
+                labels.push(state.filters.faixa_alunos);
+            }
+            if (selectedCities().length) {
+                labels.push(`${selectedCities().length} município(s)`);
+            }
+            return labels;
         }
 
         function hasActiveFilters() {
@@ -635,6 +1017,19 @@
                 : "Todos os municípios";
             document.getElementById("unmatchedText").textContent =
                 `${formatNumber(pageData.summary.unmatched_rows)} município(s) da tabela não coincidiram com a malha oficial.`;
+        }
+
+        function renderSelectedCities() {
+            const container = document.getElementById("selectedCities");
+            container.innerHTML = selectedCities().map((city) => `
+                <button class="chip active" data-remove-city="${city}">${city}</button>
+            `).join("");
+            container.querySelectorAll("[data-remove-city]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    toggleCity(button.dataset.removeCity);
+                    updateView();
+                });
+            });
         }
 
         function renderRanking(containerId, title, rows, key, valueFormatter = formatNumber) {
@@ -668,13 +1063,179 @@
             renderRanking("averageRanking", "Alunos por escola", rows, "media");
         }
 
-        function setDetails(feature) {
-            const row = feature ? featureRow(feature) : null;
-            const rows = row ? [row].filter(rowMatches) : filteredRows();
+        function chartRows(limit = 10) {
+            return filteredRows()
+                .slice()
+                .sort((a, b) => b.alunos - a.alunos || b.escolas - a.escolas)
+                .slice(0, limit);
+        }
+
+        function shortLabel(value, size = 12) {
+            const text = String(value || "");
+            return text.length > size ? `${text.slice(0, size - 1)}.` : text;
+        }
+
+        function renderColumnChart(rows) {
+            if (!window.Chart) {
+                return;
+            }
+            const ctx = document.getElementById("columnChart");
+            const labels = rows.map((row) => row.municipio_mapeado || row.municipio_tabela);
+            const data = {
+                labels: labels.map((label) => shortLabel(label, 11)),
+                datasets: [
+                    {
+                        label: "Escolas",
+                        data: rows.map((row) => row.escolas),
+                        backgroundColor: "#087f7a",
+                        borderRadius: 6,
+                        yAxisID: "schools"
+                    },
+                    {
+                        label: "Alunos",
+                        data: rows.map((row) => row.alunos),
+                        backgroundColor: "#e7aa25",
+                        borderRadius: 6,
+                        yAxisID: "students"
+                    }
+                ]
+            };
+            if (charts.column) {
+                charts.column.data = data;
+                charts.column.update();
+                return;
+            }
+            charts.column = new Chart(ctx, {
+                type: "bar",
+                data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                        legend: { position: "bottom" },
+                        tooltip: {
+                            callbacks: {
+                                title(items) {
+                                    return labels[items[0].dataIndex];
+                                },
+                                label(context) {
+                                    return `${context.dataset.label}: ${formatNumber(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { maxRotation: 0, autoSkip: false, font: { size: 10 } } },
+                        students: {
+                            beginAtZero: true,
+                            position: "left",
+                            title: { display: true, text: "Alunos" },
+                            ticks: { callback: (value) => formatNumber(value) }
+                        },
+                        schools: {
+                            beginAtZero: true,
+                            position: "right",
+                            title: { display: true, text: "Escolas" },
+                            grid: { drawOnChartArea: false },
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderScatterChart(rows) {
+            if (!window.Chart) {
+                return;
+            }
+            const ctx = document.getElementById("scatterChart");
+            const maxStudents = Math.max(...rows.map((row) => row.alunos), 1);
+            const data = {
+                datasets: [{
+                    label: "Municípios",
+                    data: rows.map((row) => ({
+                        x: row.escolas,
+                        y: average(row),
+                        students: row.alunos,
+                        city: row.municipio_mapeado || row.municipio_tabela
+                    })),
+                    pointBackgroundColor: "rgba(37, 111, 186, 0.74)",
+                    pointBorderColor: "#16323a",
+                    pointRadius(context) {
+                        const students = context.raw?.students || 0;
+                        return Math.max(4, Math.min(11, students / maxStudents * 11));
+                    },
+                    pointHoverRadius: 10
+                }]
+            };
+            if (charts.scatter) {
+                charts.scatter.data = data;
+                charts.scatter.update();
+                return;
+            }
+            charts.scatter = new Chart(ctx, {
+                type: "scatter",
+                data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label(context) {
+                                    const point = context.raw;
+                                    return [
+                                        point.city,
+                                        `${formatNumber(point.x)} escolas`,
+                                        `${formatNumber(point.y)} alunos por escola`,
+                                        `${formatNumber(point.students)} alunos no total`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: "Escolas" }, beginAtZero: true },
+                        y: { title: { display: true, text: "Alunos por escola" }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderTreemap(rows) {
+            const container = document.getElementById("treemapChart");
+            const total = Math.max(sumRows(rows, "alunos"), 1);
+            const colors = ["#087f7a", "#256fba", "#e7aa25", "#c54b3c", "#6a7d86", "#16323a"];
+            container.innerHTML = rows.slice(0, 12).map((row, index) => {
+                const ratio = row.alunos / total;
+                const width = Math.max(18, ratio * 100);
+                const grow = Math.max(1, Math.round(ratio * 100));
+                return `
+                    <div class="tree-tile" style="flex-grow:${grow}; flex-basis:calc(${width}% - 6px); background:${colors[index % colors.length]}">
+                        <strong title="${row.municipio_mapeado || row.municipio_tabela}">${row.municipio_mapeado || row.municipio_tabela}</strong>
+                        <span>${formatNumber(row.alunos)} alunos</span>
+                    </div>
+                `;
+            }).join("") || '<span class="muted">Sem dados para exibir</span>';
+        }
+
+        function renderCharts() {
+            const rows = chartRows(12);
+            renderColumnChart(rows.slice(0, 8));
+            renderScatterChart(chartRows(30));
+            renderTreemap(rows);
+        }
+
+        function setDetails() {
+            const rows = filteredRows();
             const schools = sumRows(rows, "escolas");
             const students = sumRows(rows, "alunos");
-            const title = row ? (row.municipio_mapeado || row.municipio_tabela) : "Ceará";
-            const subtitle = row ? "Município selecionado" : "Resumo filtrado da aba DADOS";
+            const title = selectedCities().length ? "Seleção de municípios" : "Ceará";
+            const subtitle = selectedCities().length
+                ? `${selectedCities().length} município(s) selecionado(s) para cálculo`
+                : "Resumo filtrado da aba DADOS";
 
             document.getElementById("selectedTitle").textContent = title;
             document.getElementById("selectedSubtitle").textContent = subtitle;
@@ -691,6 +1252,7 @@
                 </div>
             `).join("");
 
+            renderSelectedCities();
             renderTable(rows);
         }
 
@@ -721,8 +1283,9 @@
             updateModeButtons();
             updateMetrics();
             renderDashboards();
+            renderCharts();
             updateMap();
-            setDetails(state.selectedFeature);
+            setDetails();
         }
 
         const map = L.map("schoolMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
@@ -736,12 +1299,15 @@
             onEachFeature(feature, layer) {
                 layer.on({
                     click() {
-                        state.selectedFeature = feature;
-                        setDetails(feature);
+                        const row = featureRow(feature);
+                        if (row) {
+                            toggleCity(row.municipio_mapeado);
+                            updateView();
+                        }
                         layer.openPopup();
                     },
                     mouseover() {
-                        layer.setStyle({ weight: 2.6, color: "#cc4b37" });
+                        layer.setStyle({ weight: 2.8, color: "#c54b3c" });
                     },
                     mouseout() {
                         layer.setStyle(layerStyle(feature));
@@ -749,16 +1315,26 @@
                 });
                 layer.bindPopup(() => {
                     const dados = feature.properties.dados;
+                    const city = feature.properties.nome;
+                    const selected = selectedCities().includes(city) ? "Selecionado" : "Clique para selecionar";
                     return `
-                        <strong>${feature.properties.nome}</strong><br>
+                        <strong>${city}</strong><br>
                         Escolas: ${formatNumber(dados.escolas)}<br>
                         Alunos: ${formatNumber(dados.alunos)}<br>
-                        Alunos/Escola: ${formatNumber(dados.escolas ? Math.round(dados.alunos / dados.escolas) : 0)}
+                        Alunos/Escola: ${formatNumber(dados.escolas ? Math.round(dados.alunos / dados.escolas) : 0)}<br>
+                        <span>${selected}</span>
                     `;
                 });
             }
         }).addTo(map);
         map.fitBounds(geoJsonLayer.getBounds(), { padding: [18, 18] });
+
+        window.addEventListener("resize", () => {
+            window.requestAnimationFrame(() => {
+                map.invalidateSize();
+                Object.values(charts).forEach((chart) => chart?.resize());
+            });
+        });
 
         document.getElementById("searchInput").addEventListener("input", (event) => {
             state.search = normalizeText(event.target.value);
@@ -768,9 +1344,8 @@
         document.getElementById("clearFilters").addEventListener("click", () => {
             state.filters.faixa_escolas = null;
             state.filters.faixa_alunos = null;
-            state.filters.municipio_mapeado = null;
+            state.filters.municipio_mapeado = [];
             state.search = "";
-            state.selectedFeature = null;
             document.getElementById("searchInput").value = "";
             updateView();
         });
@@ -785,7 +1360,8 @@
         renderFilters();
         updateMetrics();
         renderDashboards();
-        setDetails(null);
+        renderCharts();
+        setDetails();
     </script>
 </body>
 </html>
