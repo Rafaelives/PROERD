@@ -172,6 +172,21 @@
             padding-top: 14px;
         }
 
+        .sidebar .section {
+            border-top: 0;
+            border: 1px solid rgba(255, 255, 255, 0.58);
+            border-radius: 8px;
+            background: #e9f0f3;
+            margin-top: 18px;
+            padding: 15px;
+            box-shadow: var(--shadow-in);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .sidebar .section:hover {
+            transform: translateY(-1px);
+        }
+
         .section-title {
             margin: 0 0 9px;
             color: var(--ink);
@@ -186,17 +201,28 @@
         .selected-cities {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 12px;
+        }
+
+        .sidebar .section-title {
+            margin-bottom: 12px;
         }
 
         .chip-list {
-            max-height: 160px;
+            max-height: 212px;
             overflow: auto;
-            padding: 4px 5px 4px 0;
+            padding: 6px;
+        }
+
+        .mode-row .layer-button,
+        .mode-row .mode-button,
+        .chip-list .chip {
+            flex: 1 1 118px;
         }
 
         .neo-button,
         .chip,
+        .layer-button,
         .mode-button,
         .clear-button,
         .download-link {
@@ -208,7 +234,7 @@
             font-size: 12px;
             font-weight: 900;
             line-height: 1.1;
-            padding: 10px 12px;
+            padding: 11px 13px;
             text-decoration: none;
             box-shadow: 6px 6px 13px rgba(133, 153, 164, 0.38), -6px -6px 13px rgba(255, 255, 255, 0.92);
             transition: transform 160ms ease, box-shadow 160ms ease, color 160ms ease, background 160ms ease;
@@ -216,6 +242,7 @@
 
         .neo-button:hover,
         .chip:hover,
+        .layer-button:hover,
         .mode-button:hover,
         .clear-button:hover,
         .download-link:hover {
@@ -224,19 +251,22 @@
 
         .neo-button:active,
         .chip:active,
+        .layer-button:active,
         .mode-button:active,
         .clear-button:active,
         .download-link:active,
         .chip.active,
+        .layer-button.active,
         .mode-button.active {
-            color: var(--green);
+            color: #fff;
             box-shadow: var(--shadow-in);
             transform: translateY(0);
         }
 
         .chip.active,
+        .layer-button.active,
         .mode-button.active {
-            background: #e3ecef;
+            background: linear-gradient(135deg, var(--green), var(--blue));
         }
 
         .clear-button,
@@ -304,6 +334,9 @@
             right: 12px;
             bottom: 18px;
             z-index: 500;
+            max-width: 240px;
+            max-height: 280px;
+            overflow: auto;
             color: var(--muted);
             font-size: 12px;
             font-weight: 900;
@@ -317,7 +350,15 @@
             margin-top: 7px;
         }
 
+        .legend-row span:not(.swatch) {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .swatch {
+            flex: 0 0 auto;
             width: 18px;
             height: 12px;
             border-radius: 3px;
@@ -362,7 +403,7 @@
 
         .chart-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+            grid-template-columns: minmax(0, 1fr);
             gap: 12px;
             min-width: 0;
         }
@@ -557,7 +598,7 @@
             }
 
             .chart-grid {
-                grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+                grid-template-columns: minmax(0, 1fr);
             }
         }
 
@@ -648,6 +689,7 @@
             .metric span,
             .section-title,
             .chip,
+            .layer-button,
             .mode-button,
             .clear-button,
             .download-link,
@@ -666,6 +708,7 @@
             }
 
             .chip,
+            .layer-button,
             .mode-button,
             .clear-button,
             .download-link,
@@ -795,6 +838,16 @@
                 </section>
 
                 <div class="section">
+                    <p class="section-title">Camada do mapa</p>
+                    <div class="mode-row">
+                        <button class="layer-button active" data-layer="quantidade">Quantidade</button>
+                        <button class="layer-button" data-layer="crpm">CRPM</button>
+                        <button class="layer-button" data-layer="ais">AIS</button>
+                        <button class="layer-button" data-layer="territorio">CRPM + AIS</button>
+                    </div>
+                </div>
+
+                <div class="section">
                     <p class="section-title">Cor do mapa</p>
                     <div class="mode-row">
                         <button class="mode-button active" data-mode="escolas">Escolas</button>
@@ -810,6 +863,16 @@
                 <div class="section">
                     <p class="section-title">Faixa de alunos</p>
                     <div class="chip-list" id="studentRangeFilters"></div>
+                </div>
+
+                <div class="section">
+                    <p class="section-title">CRPM</p>
+                    <div class="chip-list" id="crpmFilters"></div>
+                </div>
+
+                <div class="section">
+                    <p class="section-title">AIS</p>
+                    <div class="chip-list" id="aisFilters"></div>
                 </div>
 
                 <div class="section">
@@ -829,13 +892,7 @@
                         <input class="search" id="searchInput" placeholder="Buscar município">
                         <div class="status" id="activeFilter">Todos os municípios</div>
                     </div>
-                    <div class="legend">
-                        Intensidade
-                        <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Baixa</div>
-                        <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Média</div>
-                        <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
-                        <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
-                    </div>
+                    <div class="legend" id="mapLegend"></div>
                 </section>
 
                 <section class="charts-section panel">
@@ -877,6 +934,8 @@
                         <thead>
                             <tr>
                                 <th>Município</th>
+                                <th>CRPM</th>
+                                <th>AIS</th>
                                 <th>Escolas</th>
                                 <th>Alunos</th>
                                 <th>Alunos/Escola</th>
@@ -897,10 +956,13 @@
     <script>
         const pageData = {{ map_page | tojson }};
         const state = {
+            layer: "quantidade",
             mode: "escolas",
             filters: {
                 faixa_escolas: null,
                 faixa_alunos: null,
+                crpm: [],
+                ais: [],
                 municipio_mapeado: []
             },
             search: ""
@@ -908,6 +970,10 @@
         const charts = {
             column: null
         };
+        const categoryPalette = [
+            "#087f7a", "#256fba", "#e7aa25", "#c54b3c", "#6a7d86", "#16323a",
+            "#7c3aed", "#0f9f6e", "#b95622", "#12a4b8", "#8a6f2a", "#475569"
+        ];
         let geoJsonLayer;
 
         function formatNumber(value) {
@@ -929,11 +995,39 @@
             return state.filters.municipio_mapeado;
         }
 
+        function selectedValues(field) {
+            return Array.isArray(state.filters[field]) ? state.filters[field] : [];
+        }
+
+        function territoryLabel(crpm, ais) {
+            return `${crpm || "Sem CRPM"} / ${ais || "Sem AIS"}`;
+        }
+
+        function territoryOptions() {
+            const counts = new Map();
+            pageData.mapped_rows.forEach((row) => {
+                const label = territoryLabel(row.crpm, row.ais);
+                counts.set(label, (counts.get(label) || 0) + 1);
+            });
+            return Array.from(counts, ([label, count]) => ({ label, count }))
+                .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "pt-BR"));
+        }
+
+        function categoryOptions(field) {
+            return field === "territorio" ? territoryOptions() : pageData.filters[field] || [];
+        }
+
         function rowMatches(row) {
             if (state.filters.faixa_escolas && row.faixa_escolas !== state.filters.faixa_escolas) {
                 return false;
             }
             if (state.filters.faixa_alunos && row.faixa_alunos !== state.filters.faixa_alunos) {
+                return false;
+            }
+            if (selectedValues("crpm").length && !selectedValues("crpm").includes(row.crpm)) {
+                return false;
+            }
+            if (selectedValues("ais").length && !selectedValues("ais").includes(row.ais)) {
                 return false;
             }
             if (selectedCities().length && !selectedCities().includes(row.municipio_mapeado)) {
@@ -942,7 +1036,7 @@
             if (!state.search) {
                 return true;
             }
-            return normalizeText(`${row.municipio_mapeado} ${row.municipio_tabela}`).includes(state.search);
+            return normalizeText(`${row.municipio_mapeado} ${row.municipio_tabela} ${row.crpm} ${row.ais}`).includes(state.search);
         }
 
         function filteredRows() {
@@ -972,16 +1066,32 @@
                 : pageData.summary.max_schools;
         }
 
+        function categoryColor(value, field) {
+            const options = categoryOptions(field);
+            const labels = options.map((item) => item.label);
+            const index = Math.max(labels.indexOf(value), 0);
+            return categoryPalette[index % categoryPalette.length];
+        }
+
         function fillColor(feature) {
             const dados = feature.properties.dados;
             if (!dados.has_data) {
                 return "#d5dde2";
             }
-            const value = metricValue(feature);
-            const ratio = maxMetric() ? value / maxMetric() : 0;
             if ((hasActiveFilters() || state.search) && !featureMatches(feature)) {
                 return "#edf2f4";
             }
+            if (state.layer === "crpm") {
+                return categoryColor(dados.crpm, "crpm");
+            }
+            if (state.layer === "ais") {
+                return categoryColor(dados.ais, "ais");
+            }
+            if (state.layer === "territorio") {
+                return categoryColor(territoryLabel(dados.crpm, dados.ais), "territorio");
+            }
+            const value = metricValue(feature);
+            const ratio = maxMetric() ? value / maxMetric() : 0;
             if (ratio >= 0.66) {
                 return "#087f7a";
             }
@@ -1004,8 +1114,8 @@
         function renderFilterGroup(containerId, field, options) {
             const container = document.getElementById(containerId);
             container.innerHTML = options.map((item) => {
-                const active = field === "municipio_mapeado"
-                    ? selectedCities().includes(item.label)
+                const active = Array.isArray(state.filters[field])
+                    ? selectedValues(field).includes(item.label)
                     : state.filters[field] === item.label;
                 return `
                     <button class="chip ${active ? "active" : ""}" data-field="${field}" data-value="${item.label}">
@@ -1015,13 +1125,17 @@
             }).join("");
         }
 
-        function toggleCity(city) {
-            const cities = selectedCities();
-            if (cities.includes(city)) {
-                state.filters.municipio_mapeado = cities.filter((item) => item !== city);
+        function toggleMultiFilter(field, value) {
+            const values = selectedValues(field);
+            if (values.includes(value)) {
+                state.filters[field] = values.filter((item) => item !== value);
             } else {
-                state.filters.municipio_mapeado = [...cities, city];
+                state.filters[field] = [...values, value];
             }
+        }
+
+        function toggleCity(city) {
+            toggleMultiFilter("municipio_mapeado", city);
         }
 
         function bindFilterButtons() {
@@ -1029,8 +1143,8 @@
                 button.addEventListener("click", () => {
                     const field = button.dataset.field;
                     const value = button.dataset.value;
-                    if (field === "municipio_mapeado") {
-                        toggleCity(value);
+                    if (Array.isArray(state.filters[field])) {
+                        toggleMultiFilter(field, value);
                     } else {
                         state.filters[field] = state.filters[field] === value ? null : value;
                     }
@@ -1042,6 +1156,8 @@
         function renderFilters() {
             renderFilterGroup("schoolRangeFilters", "faixa_escolas", pageData.filters.faixa_escolas);
             renderFilterGroup("studentRangeFilters", "faixa_alunos", pageData.filters.faixa_alunos);
+            renderFilterGroup("crpmFilters", "crpm", pageData.filters.crpm);
+            renderFilterGroup("aisFilters", "ais", pageData.filters.ais);
             renderFilterGroup("cityFilters", "municipio_mapeado", pageData.filters.cidade);
             bindFilterButtons();
         }
@@ -1053,6 +1169,12 @@
             }
             if (state.filters.faixa_alunos) {
                 labels.push(state.filters.faixa_alunos);
+            }
+            if (selectedValues("crpm").length) {
+                labels.push(`${selectedValues("crpm").length} CRPM`);
+            }
+            if (selectedValues("ais").length) {
+                labels.push(`${selectedValues("ais").length} AIS`);
             }
             if (selectedCities().length) {
                 labels.push(`${selectedCities().length} município(s)`);
@@ -1066,6 +1188,42 @@
 
         function sumRows(rows, key) {
             return rows.reduce((total, row) => total + (row[key] || 0), 0);
+        }
+
+        function uniqueCount(rows, key) {
+            return new Set(rows.map((row) => row[key]).filter(Boolean)).size;
+        }
+
+        function renderLegend() {
+            const legend = document.getElementById("mapLegend");
+            if (state.layer === "quantidade") {
+                legend.innerHTML = `
+                    Intensidade por ${state.mode === "alunos" ? "alunos" : "escolas"}
+                    <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Baixa</div>
+                    <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Média</div>
+                    <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
+                    <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
+                `;
+                return;
+            }
+
+            const options = categoryOptions(state.layer);
+            const titles = {
+                crpm: "Camada CRPM",
+                ais: "Camada AIS",
+                territorio: "Camada CRPM + AIS"
+            };
+            const title = titles[state.layer] || "Camada territorial";
+            legend.innerHTML = `
+                ${title}
+                ${options.map((item) => `
+                    <div class="legend-row">
+                        <span class="swatch" style="background: ${categoryColor(item.label, state.layer)}"></span>
+                        <span>${item.label} · ${formatNumber(item.count)}</span>
+                    </div>
+                `).join("")}
+                <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
+            `;
         }
 
         function updateMetrics() {
@@ -1293,6 +1451,8 @@
             document.getElementById("selectedSubtitle").textContent = subtitle;
             document.getElementById("detailList").innerHTML = [
                 ["Municípios", formatNumber(rows.length)],
+                ["CRPM", selectedValues("crpm").length ? selectedValues("crpm").join(", ") : formatNumber(uniqueCount(rows, "crpm"))],
+                ["AIS", selectedValues("ais").length ? selectedValues("ais").join(", ") : formatNumber(uniqueCount(rows, "ais"))],
                 ["Escolas", formatNumber(schools)],
                 ["Alunos", formatNumber(students)],
                 ["Alunos/Escola", formatNumber(schools ? Math.round(students / schools) : 0)],
@@ -1313,11 +1473,13 @@
             table.innerHTML = rows.slice(0, 120).map((row) => `
                 <tr>
                     <td>${row.municipio_mapeado || row.municipio_tabela}</td>
+                    <td>${row.crpm || "-"}</td>
+                    <td>${row.ais || "-"}</td>
                     <td>${formatNumber(row.escolas)}</td>
                     <td>${formatNumber(row.alunos)}</td>
                     <td>${formatNumber(average(row))}</td>
                 </tr>
-            `).join("") || '<tr><td colspan="4" class="muted">Nenhum registro encontrado</td></tr>';
+            `).join("") || '<tr><td colspan="6" class="muted">Nenhum registro encontrado</td></tr>';
         }
 
         function updateMap() {
@@ -1330,12 +1492,20 @@
             });
         }
 
+        function updateLayerButtons() {
+            document.querySelectorAll(".layer-button").forEach((button) => {
+                button.classList.toggle("active", button.dataset.layer === state.layer);
+            });
+        }
+
         function updateView() {
             renderFilters();
             updateModeButtons();
+            updateLayerButtons();
             updateMetrics();
             renderDashboards();
             renderCharts();
+            renderLegend();
             updateMap();
             setDetails();
         }
@@ -1371,6 +1541,8 @@
                     const selected = selectedCities().includes(city) ? "Selecionado" : "Clique para selecionar";
                     return `
                         <strong>${city}</strong><br>
+                        CRPM: ${dados.crpm || "-"}<br>
+                        AIS: ${dados.ais || "-"}<br>
                         Escolas: ${formatNumber(dados.escolas)}<br>
                         Alunos: ${formatNumber(dados.alunos)}<br>
                         Alunos/Escola: ${formatNumber(dados.escolas ? Math.round(dados.alunos / dados.escolas) : 0)}<br>
@@ -1396,6 +1568,8 @@
         document.getElementById("clearFilters").addEventListener("click", () => {
             state.filters.faixa_escolas = null;
             state.filters.faixa_alunos = null;
+            state.filters.crpm = [];
+            state.filters.ais = [];
             state.filters.municipio_mapeado = [];
             state.search = "";
             document.getElementById("searchInput").value = "";
@@ -1409,10 +1583,18 @@
             });
         });
 
+        document.querySelectorAll(".layer-button").forEach((button) => {
+            button.addEventListener("click", () => {
+                state.layer = button.dataset.layer;
+                updateView();
+            });
+        });
+
         renderFilters();
         updateMetrics();
         renderDashboards();
         renderCharts();
+        renderLegend();
         setDetails();
     </script>
 </body>

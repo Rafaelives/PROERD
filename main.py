@@ -280,6 +280,8 @@ def _feature_to_school_kml_placemark(feature):
             _kml_data("codigo_ibge", code),
             _kml_data("municipio", properties.get("nome", "")),
             _kml_data("municipio_tabela", dados.get("municipio_tabela", "")),
+            _kml_data("crpm", dados.get("crpm", "")),
+            _kml_data("ais", dados.get("ais", "")),
             _kml_data("escolas", schools),
             _kml_data("alunos", students),
             _kml_data("alunos_por_escola", average),
@@ -340,6 +342,8 @@ def _school_export_rows(data):
             {
                 "municipio": record.get("municipio_tabela", ""),
                 "municipio_mapeado": record.get("municipio_mapeado", ""),
+                "crpm": record.get("crpm", ""),
+                "ais": record.get("ais", ""),
                 "escolas": schools,
                 "alunos": students,
                 "alunos_por_escola": average,
@@ -358,6 +362,8 @@ def export_school_csv():
     fieldnames = [
         "municipio",
         "municipio_mapeado",
+        "crpm",
+        "ais",
         "escolas",
         "alunos",
         "alunos_por_escola",
@@ -366,7 +372,7 @@ def export_school_csv():
     ]
 
     with paths["csv"].open("w", encoding="utf-8-sig", newline="") as output:
-        writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=";")
+        writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=";", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -618,6 +624,8 @@ def get_territorial_data():
                 "id": index,
                 "municipio_tabela": municipality,
                 "municipio_mapeado": "",
+                "crpm": (record.get("CRPM") or "Não informado").strip() or "Não informado",
+                "ais": (record.get("AIS") or "Não informado").strip() or "Não informado",
                 "escolas": schools,
                 "alunos": students,
                 "faixa_escolas": _school_range(schools),
@@ -651,6 +659,8 @@ def get_territorial_data():
             "municipio_tabela": row["municipio_tabela"] if row else "",
             "escolas": row["escolas"] if row else 0,
             "alunos": row["alunos"] if row else 0,
+            "crpm": row["crpm"] if row else "",
+            "ais": row["ais"] if row else "",
             "faixa_escolas": row["faixa_escolas"] if row else "Sem escolas",
             "faixa_alunos": row["faixa_alunos"] if row else "Sem alunos",
             "rows": [row] if row else [],
@@ -671,6 +681,8 @@ def get_territorial_data():
         "filters": {
             "faixa_escolas": _count_options(dados_records, "faixa_escolas"),
             "faixa_alunos": _count_options(dados_records, "faixa_alunos"),
+            "crpm": _count_options(mapped_rows, "crpm"),
+            "ais": _count_options(mapped_rows, "ais"),
             "cidade": _count_options(mapped_rows, "municipio_mapeado"),
         },
         "summary": {
