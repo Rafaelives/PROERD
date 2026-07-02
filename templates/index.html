@@ -279,7 +279,7 @@
 
         .map-shell {
             position: relative;
-            height: clamp(420px, 54vh, 620px);
+            height: clamp(420px, 90vh, 900px);
             min-height: 420px;
             overflow: hidden;
         }
@@ -886,15 +886,7 @@
             </aside>
 
             <main class="workspace">
-                <section class="map-shell panel">
-                    <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
-                    <div class="map-toolbar">
-                        <input class="search" id="searchInput" placeholder="Buscar município">
-                        <div class="status" id="activeFilter">Todos os municípios</div>
-                    </div>
-                    <div class="legend" id="mapLegend"></div>
-                </section>
-
+                
                 <section class="charts-section panel">
                     <p class="section-title">Gráficos</p>
                     <div class="chart-grid">
@@ -911,6 +903,15 @@
                             <div class="treemap" id="treemapChart"></div>
                         </div>
                     </div>
+                </section>
+                
+                <section class="map-shell panel">
+                    <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
+                    <div class="map-toolbar">
+                        <input class="search" id="searchInput" placeholder="Buscar município">
+                        <div class="status" id="activeFilter">Todos os municípios</div>
+                    </div>
+                    <div class="legend" id="mapLegend"></div>
                 </section>
             </main>
 
