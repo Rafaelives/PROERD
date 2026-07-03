@@ -213,13 +213,11 @@
             overflow: auto;
             padding: 6px;
         }
-
         .mode-row .layer-button,
         .mode-row .mode-button,
         .chip-list .chip {
             flex: 1 1 118px;
         }
-
         .neo-button,
         .chip,
         .layer-button,
@@ -1025,10 +1023,12 @@
             if (state.filters.faixa_alunos && row.faixa_alunos !== state.filters.faixa_alunos) {
                 return false;
             }
-            if (selectedValues("crpm").length && !selectedValues("crpm").includes(row.crpm)) {
+            const crpmValues = row.crpm_values || [row.crpm];
+            const aisValues = row.ais_values || [row.ais];
+            if (selectedValues("crpm").length && !selectedValues("crpm").some((value) => crpmValues.includes(value))) {
                 return false;
             }
-            if (selectedValues("ais").length && !selectedValues("ais").includes(row.ais)) {
+            if (selectedValues("ais").length && !selectedValues("ais").some((value) => aisValues.includes(value))) {
                 return false;
             }
             if (selectedCities().length && !selectedCities().includes(row.municipio_mapeado)) {
@@ -1045,7 +1045,19 @@
         }
 
         function featureRow(feature) {
-            return feature.properties.dados.rows[0] || null;
+            const dados = feature.properties.dados;
+            return dados.has_data ? {
+                municipio_tabela: dados.municipio_tabela,
+                municipio_mapeado: feature.properties.nome,
+                crpm: dados.crpm,
+                ais: dados.ais,
+                crpm_values: dados.crpm_values || [],
+                ais_values: dados.ais_values || [],
+                escolas: dados.escolas,
+                alunos: dados.alunos,
+                faixa_escolas: dados.faixa_escolas,
+                faixa_alunos: dados.faixa_alunos
+            } : null;
         }
 
         function featureMatches(feature) {
@@ -1083,10 +1095,10 @@
                 return "#edf2f4";
             }
             if (state.layer === "crpm") {
-                return categoryColor(dados.crpm, "crpm");
+                return categoryColor((dados.crpm_values || [dados.crpm])[0], "crpm");
             }
             if (state.layer === "ais") {
-                return categoryColor(dados.ais, "ais");
+                return categoryColor((dados.ais_values || [dados.ais])[0], "ais");
             }
             if (state.layer === "territorio") {
                 return categoryColor(territoryLabel(dados.crpm, dados.ais), "territorio");

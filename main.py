@@ -334,7 +334,7 @@ def export_school_kml():
 
 def _school_export_rows(data):
     rows = []
-    for record in data["records"]:
+    for record in data["mapped_rows"]:
         schools = int(record.get("escolas") or 0)
         students = int(record.get("alunos") or 0)
         average = round(students / schools) if schools else 0
@@ -560,11 +560,26 @@ def _load_ceara_geojson():
 
 
 def _count_options(records, key):
-    counts = Counter(record[key] for record in records if record[key])
+    counts = Counter()
+    for record in records:
+        value = record.get(key)
+        if isinstance(value, list):
+            counts.update(item for item in value if item)
+        elif value:
+            counts[value] += 1
     return [
         {"label": label, "count": count}
         for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     ]
+
+
+def _unique_labels(values):
+    return sorted({value for value in values if value and value != "Não informado"})
+
+
+def _join_labels(values):
+    labels = _unique_labels(values)
+    return ", ".join(labels) if labels else "Não informado"
 
 
 MUNICIPALITY_ALIASES = {
@@ -645,7 +660,32 @@ def get_territorial_data():
         feature = municipality_by_key.get(municipality_key)
         if feature:
             row["municipio_mapeado"] = feature["properties"]["nome"]
-            rows_by_municipality[municipality_key] = row
+            grouped_row = rows_by_municipality.setdefault(
+                municipality_key,
+                {
+                    "id": row["id"],
+                    "municipio_tabela": row["municipio_tabela"],
+                    "municipio_mapeado": row["municipio_mapeado"],
+                    "crpm": "",
+                    "ais": "",
+                    "crpm_values": [],
+                    "ais_values": [],
+                    "escolas": 0,
+                    "alunos": 0,
+                    "faixa_escolas": "",
+                    "faixa_alunos": "",
+                    "rows": [],
+                },
+            )
+            grouped_row["rows"].append(row)
+            grouped_row["escolas"] += row["escolas"]
+            grouped_row["alunos"] += row["alunos"]
+            grouped_row["crpm_values"] = _unique_labels([*grouped_row["crpm_values"], row["crpm"]])
+            grouped_row["ais_values"] = _unique_labels([*grouped_row["ais_values"], row["ais"]])
+            grouped_row["crpm"] = _join_labels(grouped_row["crpm_values"])
+            grouped_row["ais"] = _join_labels(grouped_row["ais_values"])
+            grouped_row["faixa_escolas"] = _school_range(grouped_row["escolas"])
+            grouped_row["faixa_alunos"] = _student_range(grouped_row["alunos"])
         else:
             unmatched_rows.append(row)
 
@@ -661,16 +701,18 @@ def get_territorial_data():
             "alunos": row["alunos"] if row else 0,
             "crpm": row["crpm"] if row else "",
             "ais": row["ais"] if row else "",
+            "crpm_values": row["crpm_values"] if row else [],
+            "ais_values": row["ais_values"] if row else [],
             "faixa_escolas": row["faixa_escolas"] if row else "Sem escolas",
             "faixa_alunos": row["faixa_alunos"] if row else "Sem alunos",
-            "rows": [row] if row else [],
+            "rows": row["rows"] if row else [],
         }
 
     mapped_rows = list(rows_by_municipality.values())
     schools_total = sum(record["escolas"] for record in dados_records)
     students_total = sum(record["alunos"] for record in dados_records)
-    max_schools = max((record["escolas"] for record in dados_records), default=0)
-    max_students = max((record["alunos"] for record in dados_records), default=0)
+    max_schools = max((record["escolas"] for record in mapped_rows), default=0)
+    max_students = max((record["alunos"] for record in mapped_rows), default=0)
 
     return {
         "source": "Análise.xlsx / aba DADOS",
@@ -681,8 +723,8 @@ def get_territorial_data():
         "filters": {
             "faixa_escolas": _count_options(dados_records, "faixa_escolas"),
             "faixa_alunos": _count_options(dados_records, "faixa_alunos"),
-            "crpm": _count_options(mapped_rows, "crpm"),
-            "ais": _count_options(mapped_rows, "ais"),
+            "crpm": _count_options(mapped_rows, "crpm_values"),
+            "ais": _count_options(mapped_rows, "ais_values"),
             "cidade": _count_options(mapped_rows, "municipio_mapeado"),
         },
         "summary": {

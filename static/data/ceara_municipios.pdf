@@ -107,9 +107,9 @@ BT
 0 -14 Td
 (ITATIRA                             1        236      236) Tj
 0 -14 Td
-(FORTALEZA                          10      1.068      107) Tj
+(FORTALEZA                          20      2.135      107) Tj
 0 -14 Td
-(FORTALEZA                          10      1.067      107) Tj
+(IPU                                 8        490       61) Tj
 0 -14 Td
 /F1 8 Tf
 0 -14 Td
@@ -121,7 +121,7 @@ endobj
 << /Type /Page /Parent 6 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
 endobj
 4 0 obj
-<< /Length 404 >>
+<< /Length 332 >>
 stream
 BT
 /F1 16 Tf
@@ -129,8 +129,6 @@ BT
 (Escolas por municipio do Ceara) Tj
 /F1 9 Tf
 0 -28 Td
-(IPU                                 8        490       61) Tj
-0 -14 Td
 (NOVA RUSSAS                         5        264       53) Tj
 0 -14 Td
 (CRATEÚS                             4        272       68) Tj
@@ -159,11 +157,11 @@ xref
 0000000079 00000 n 
 0000003671 00000 n 
 0000003797 00000 n 
-0000004252 00000 n 
-0000004378 00000 n 
-0000004441 00000 n 
+0000004180 00000 n 
+0000004306 00000 n 
+0000004369 00000 n 
 trailer
 << /Size 8 /Root 7 0 R >>
 startxref
-4490
+4418
 %%EOF
