@@ -1,47 +1,48 @@
 ﻿municipio;municipio_mapeado;crpm;ais;escolas;alunos;alunos_por_escola;faixa_escolas;faixa_alunos
-FORTALEZA;Fortaleza;1º CRPM;AIS 5;20;2135;107;15+ escolas;1.500+ alunos
-JUAZEIRO DO NORTE;Juazeiro do Norte;4º CRPM;AIS 2;14;1702;122;10 a 14 escolas;1.500+ alunos
-IGUATU;Iguatu;4º CRPM;AIS 10;13;1538;118;10 a 14 escolas;1.500+ alunos
-CAUCAIA;Caucaia;2º CRPM;AIS 12;10;1192;119;10 a 14 escolas;1.000 a 1.499 alunos
-MARANGUAPE;Maranguape;6º CRPM;AIS 24;9;304;34;5 a 9 escolas;1 a 499 alunos
-SOBRAL;Sobral;3º CRPM;AIS 3;9;846;94;5 a 9 escolas;500 a 999 alunos
-CANINDÉ;Canindé;7º CRPM;AIS 4;8;1671;209;5 a 9 escolas;1.500+ alunos
-IPU;Ipu;3º CRPM;AIS 7;8;490;61;5 a 9 escolas;1 a 499 alunos
-ITAPAJÉ;Itapajé;7º CRPM;AIS 11;8;456;57;5 a 9 escolas;1 a 499 alunos
-ACOPIARA;Acopiara;4º CRPM;AIS 10;7;511;73;5 a 9 escolas;500 a 999 alunos
 RUSSAS;Russas;8º CRPM;AIS 1;7;648;93;5 a 9 escolas;500 a 999 alunos
-CAMOCIM;Camocim;3º CRPM;AIS 28;6;521;87;5 a 9 escolas;500 a 999 alunos
-CRATO;Crato;4º CRPM;AIS 2;5;1011;202;5 a 9 escolas;1.000 a 1.499 alunos
 LIMOEIRO DO NORTE;Limoeiro do Norte;8º CRPM;AIS 1;5;279;56;5 a 9 escolas;1 a 499 alunos
-ARACATI;Aracati;8º CRPM;AIS 30;5;303;61;5 a 9 escolas;1 a 499 alunos
-NOVA RUSSAS;Nova Russas;3º CRPM;AIS 7;5;264;53;5 a 9 escolas;1 a 499 alunos
-QUIXERAMOBIM;Quixeramobim;8º CRPM;AIS 9;5;224;45;5 a 9 escolas;1 a 499 alunos
-ITAPIPOCA;Itapipoca;7º CRPM;AIS 11;5;438;88;5 a 9 escolas;1 a 499 alunos
-VÁRZEA ALEGRE;Várzea Alegre;4º CRPM;AIS 34;4;233;58;1 a 4 escolas;1 a 499 alunos
-AMONTADA;Amontada;7º CRPM;AIS 11;4;226;56;1 a 4 escolas;1 a 499 alunos
-CARIRIAÇU;Caririaçu;4º CRPM;AIS 2;4;140;35;1 a 4 escolas;1 a 499 alunos
-CRATEÚS;Crateús;3º CRPM;AIS 7;4;272;68;1 a 4 escolas;1 a 499 alunos
-FARIAS BRITO;Farias Brito;4º CRPM;AIS 2;3;228;76;1 a 4 escolas;1 a 499 alunos
-CASCAVEL;Cascavel;6º CRPM;AIS 15;3;264;88;1 a 4 escolas;1 a 499 alunos
+IGUATU;Iguatu;4º CRPM;AIS 10;13;1538;118;10 a 14 escolas;1.500+ alunos
+ACOPIARA;Acopiara;4º CRPM;AIS 10;7;511;73;5 a 9 escolas;500 a 999 alunos
 SABOEIRO;Saboeiro;4º CRPM;AIS 10;3;225;75;1 a 4 escolas;1 a 499 alunos
+TARRAFAS;Tarrafas;4º CRPM;AIS 10;2;207;104;1 a 4 escolas;1 a 499 alunos
+JUCÁS;Jucás;4º CRPM;AIS 10;1;130;130;1 a 4 escolas;1 a 499 alunos
+ITAPAJÉ;Itapajé;7º CRPM;AIS 11;8;456;57;5 a 9 escolas;1 a 499 alunos
+ITAPIPOCA;Itapipoca;7º CRPM;AIS 11;5;438;88;5 a 9 escolas;1 a 499 alunos
+AMONTADA;Amontada;7º CRPM;AIS 11;4;226;56;1 a 4 escolas;1 a 499 alunos
+IRAUÇUBA;Irauçuba;7º CRPM;AIS 11;2;161;80;1 a 4 escolas;1 a 499 alunos
+CAUCAIA;Caucaia;2º CRPM;AIS 12;10;1192;119;10 a 14 escolas;1.000 a 1.499 alunos
+CASCAVEL;Cascavel;6º CRPM;AIS 15;3;264;88;1 a 4 escolas;1 a 499 alunos
 EUSÉBIO;Eusébio;6º CRPM;AIS 15;2;215;108;1 a 4 escolas;1 a 499 alunos
+PINDORETAMA;Pindoretama;6º CRPM;AIS 15;2;73;36;1 a 4 escolas;1 a 499 alunos
+AQUIRAZ;Aquiraz;6º CRPM;AIS 15;1;94;94;1 a 4 escolas;1 a 499 alunos
+JUAZEIRO DO NORTE;Juazeiro do Norte;4º CRPM;AIS 2;14;1702;122;10 a 14 escolas;1.500+ alunos
+CRATO;Crato;4º CRPM;AIS 2;5;1011;202;5 a 9 escolas;1.000 a 1.499 alunos
+CARIRIAÇU;Caririaçu;4º CRPM;AIS 2;4;140;35;1 a 4 escolas;1 a 499 alunos
+FARIAS BRITO;Farias Brito;4º CRPM;AIS 2;3;228;76;1 a 4 escolas;1 a 499 alunos
 JARDIM;Jardim;4º CRPM;AIS 2;2;251;126;1 a 4 escolas;1 a 499 alunos
-ABAIARA;Abaiara;4º CRPM;AIS 32;2;116;58;1 a 4 escolas;1 a 499 alunos
-ALTANEIRA;Altaneira;4º CRPM;AIS 33;2;215;108;1 a 4 escolas;1 a 499 alunos
+BARBALHA;Barbalha;4º CRPM;AIS 2;2;186;93;1 a 4 escolas;1 a 499 alunos
+MARANGUAPE;Maranguape;6º CRPM;AIS 24;9;304;34;5 a 9 escolas;1 a 499 alunos
+GUAIÚBA;Guaiúba;6º CRPM;AIS 24;1;22;22;1 a 4 escolas;1 a 499 alunos
+PACATUBA;Pacatuba;6º CRPM;AIS 24;1;25;25;1 a 4 escolas;1 a 499 alunos
+GUARACIABA DO NORTE;Guaraciaba do Norte;3º CRPM;AIS 27;1;375;375;1 a 4 escolas;1 a 499 alunos
+CAMOCIM;Camocim;3º CRPM;AIS 28;6;521;87;5 a 9 escolas;500 a 999 alunos
+GRANJA;Granja;3º CRPM;AIS 28;1;153;153;1 a 4 escolas;1 a 499 alunos
+GUARAMIRANGA;Guaramiranga;7º CRPM;AIS 29;2;94;47;1 a 4 escolas;1 a 499 alunos
+SOBRAL;Sobral;3º CRPM;AIS 3;9;846;94;5 a 9 escolas;500 a 999 alunos
 GROAÍRAS;Groaíras;3º CRPM;AIS 3;2;233;116;1 a 4 escolas;1 a 499 alunos
 MASSAPÊ;Massapê;3º CRPM;AIS 3;2;96;48;1 a 4 escolas;1 a 499 alunos
-BARBALHA;Barbalha;4º CRPM;AIS 2;2;186;93;1 a 4 escolas;1 a 499 alunos
-GUARAMIRANGA;Guaramiranga;7º CRPM;AIS 29;2;94;47;1 a 4 escolas;1 a 499 alunos
-PINDORETAMA;Pindoretama;6º CRPM;AIS 15;2;73;36;1 a 4 escolas;1 a 499 alunos
-IRAUÇUBA;Irauçuba;7º CRPM;AIS 11;2;161;80;1 a 4 escolas;1 a 499 alunos
-ITAIÇABA;Itaiçaba;8º CRPM;AIS 30;2;148;74;1 a 4 escolas;1 a 499 alunos
-TARRAFAS;Tarrafas;4º CRPM;AIS 10;2;207;104;1 a 4 escolas;1 a 499 alunos
-ITATIRA;Itatira;7º CRPM;AIS 4;1;236;236;1 a 4 escolas;1 a 499 alunos
-JUCÁS;Jucás;4º CRPM;AIS 10;1;130;130;1 a 4 escolas;1 a 499 alunos
-FORTIM;Fortim;8º CRPM;AIS 30;1;81;81;1 a 4 escolas;1 a 499 alunos
-GRANJA;Granja;3º CRPM;AIS 28;1;153;153;1 a 4 escolas;1 a 499 alunos
-AQUIRAZ;Aquiraz;6º CRPM;AIS 15;1;94;94;1 a 4 escolas;1 a 499 alunos
-GUAIÚBA;Guaiúba;6º CRPM;AIS 24;1;22;22;1 a 4 escolas;1 a 499 alunos
-GUARACIABA DO NORTE;Guaraciaba do Norte;3º CRPM;AIS 27;1;375;375;1 a 4 escolas;1 a 499 alunos
-PACATUBA;Pacatuba;6º CRPM;AIS 24;1;25;25;1 a 4 escolas;1 a 499 alunos
 CARIRÉ;Cariré;3º CRPM;AIS 3;1;179;179;1 a 4 escolas;1 a 499 alunos
+ARACATI;Aracati;8º CRPM;AIS 30;5;303;61;5 a 9 escolas;1 a 499 alunos
+ITAIÇABA;Itaiçaba;8º CRPM;AIS 30;2;148;74;1 a 4 escolas;1 a 499 alunos
+FORTIM;Fortim;8º CRPM;AIS 30;1;81;81;1 a 4 escolas;1 a 499 alunos
+ABAIARA;Abaiara;4º CRPM;AIS 32;2;116;58;1 a 4 escolas;1 a 499 alunos
+ALTANEIRA;Altaneira;4º CRPM;AIS 33;2;215;108;1 a 4 escolas;1 a 499 alunos
+VÁRZEA ALEGRE;Várzea Alegre;4º CRPM;AIS 34;4;233;58;1 a 4 escolas;1 a 499 alunos
+CANINDÉ;Canindé;7º CRPM;AIS 4;8;1671;209;5 a 9 escolas;1.500+ alunos
+ITATIRA;Itatira;7º CRPM;AIS 4;1;236;236;1 a 4 escolas;1 a 499 alunos
+FORTALEZA;Fortaleza;5º CRPM;AIS 8, AIS 16, AIS 17, AIS 18, AIS 19, AIS 20, AIS 21;10;1068;107;10 a 14 escolas;1.000 a 1.499 alunos
+FORTALEZA;Fortaleza;1º CRPM;AIS 8, AIS 16, AIS 17, AIS 18, AIS 19, AIS 20, AIS 21;10;1067;107;10 a 14 escolas;1.000 a 1.499 alunos
+IPU;Ipu;3º CRPM;AIS 7;8;490;61;5 a 9 escolas;1 a 499 alunos
+NOVA RUSSAS;Nova Russas;3º CRPM;AIS 7;5;264;53;5 a 9 escolas;1 a 499 alunos
+CRATEÚS;Crateús;3º CRPM;AIS 7;4;272;68;1 a 4 escolas;1 a 499 alunos
+QUIXERAMOBIM;Quixeramobim;8º CRPM;AIS 9;5;224;45;5 a 9 escolas;1 a 499 alunos
