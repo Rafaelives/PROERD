@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from main import app, export_school_csv, export_school_pdf, get_territorial_data
+from main import app, export_school_csv, export_school_pdf, get_dashboard_data, get_territorial_data
 
 
 def build_static_site():
@@ -19,6 +19,7 @@ def build_static_site():
     with app.app_context():
         html = app.jinja_env.get_template("index.html").render(
             map_page=get_territorial_data(),
+            scientific_page=get_dashboard_data(),
             csv_href="ceara_municipios.csv",
             pdf_href="ceara_municipios.pdf",
         )

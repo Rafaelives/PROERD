@@ -2,6 +2,8 @@
 
 Relatório interativo em HTML com mapa municipal do Ceará, filtros e dashboards de quantidade de escolas e alunos.
 
+Também inclui abas baseadas em `Mapeamento`, reutilizando a mesma malha municipal para visualizar distribuição territorial, regiões, batalhões, funções, postos/graduações e a relação de antiguidade com localização no mapa.
+
 ## Rodar localmente
 
 ```bash

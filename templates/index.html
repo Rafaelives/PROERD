@@ -98,6 +98,515 @@
             min-height: 0;
         }
 
+        .tab-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .tab-button {
+            min-width: 168px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--panel);
+            color: #26313a;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 12px 14px;
+            box-shadow: 6px 6px 13px rgba(133, 153, 164, 0.38), -6px -6px 13px rgba(255, 255, 255, 0.92);
+            transition: transform 160ms ease, box-shadow 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .tab-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            color: #fff;
+            box-shadow: var(--shadow-in);
+        }
+
+        .tab-panel[hidden] {
+            display: none;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr) 420px;
+            grid-template-areas: "analysis-sidebar analysis-main analysis-details";
+            gap: 14px;
+            min-height: 0;
+        }
+
+        .analysis-sidebar,
+        .analysis-details {
+            min-height: calc(100vh - 244px);
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .analysis-sidebar {
+            grid-area: analysis-sidebar;
+        }
+
+        .analysis-main {
+            grid-area: analysis-main;
+            display: grid;
+            align-content: start;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .analysis-details {
+            grid-area: analysis-details;
+        }
+
+        .mapping-board {
+            display: grid;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .mapping-kpi-grid {
+            padding: 14px;
+        }
+
+        .mapping-top-filters,
+        .mapping-bottom-filters,
+        .mapping-side-panel,
+        .mapping-table-panel {
+            padding: 14px;
+            min-width: 0;
+        }
+
+        .mapping-filter-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .mapping-clear-button {
+            margin-top: 0;
+        }
+
+        .mapping-filter-strip,
+        .mapping-bottom-filters {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .mapping-filter-group {
+            min-width: 0;
+            border-radius: 8px;
+            background: #e9f0f3;
+            padding: 11px;
+            box-shadow: var(--shadow-in);
+        }
+
+        .mapping-filter-group-wide {
+            grid-column: span 2;
+        }
+
+        .compact-filter-list {
+            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+            max-height: 132px;
+            overflow: auto;
+            padding: 4px;
+            scrollbar-color: #9db0ba transparent;
+            scrollbar-width: thin;
+        }
+
+        .compact-filter-list::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .compact-filter-list::-webkit-scrollbar-track {
+            background: #dce6ea;
+            border-radius: 8px;
+        }
+
+        .compact-filter-list::-webkit-scrollbar-thumb {
+            background: #9db0ba;
+            border-radius: 8px;
+        }
+
+        .mapping-map-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 260px) minmax(420px, 1fr) minmax(260px, 340px);
+            gap: 14px;
+            align-items: stretch;
+            min-width: 0;
+        }
+
+        .mapping-side-panel {
+            max-height: clamp(460px, 66vh, 780px);
+            overflow: auto;
+        }
+
+        .mapping-panel-search,
+        .mapping-panel-status {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .mapping-panel-status {
+            min-width: 0;
+            min-height: 38px;
+            text-align: center;
+        }
+
+        .mapping-detail-list {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .mapping-details-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr);
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .mapping-table-panel {
+            overflow: hidden;
+        }
+
+        .antiquity-board {
+            display: grid;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .antiquity-toolbar,
+        .antiquity-person-panel,
+        .antiquity-table-panel {
+            min-width: 0;
+            padding: 14px;
+        }
+
+        .antiquity-kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .antiquity-filter-row {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.4fr) repeat(3, minmax(150px, 1fr)) minmax(130px, 180px);
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .antiquity-filter-row .search {
+            width: 100%;
+            height: 44px;
+        }
+
+        .antiquity-select {
+            width: 100%;
+            min-width: 0;
+            height: 44px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 8px;
+            background: rgba(237, 243, 246, 0.94);
+            color: var(--text);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 0 11px;
+            box-shadow: 6px 6px 14px rgba(52, 74, 85, 0.18), -6px -6px 14px rgba(255, 255, 255, 0.82);
+        }
+
+        .antiquity-main-grid {
+            display: grid;
+            grid-template-columns: minmax(420px, 1fr) minmax(340px, 460px);
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .antiquity-map-shell {
+            position: relative;
+            height: clamp(520px, 72vh, 880px);
+            min-height: 520px;
+            overflow: hidden;
+        }
+
+        #antiquityMap {
+            position: absolute;
+            inset: 0;
+        }
+
+        .antiquity-map-status {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            z-index: 500;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .antiquity-map-status .status {
+            min-width: 260px;
+            min-height: 40px;
+            pointer-events: auto;
+        }
+
+        .antiquity-legend {
+            position: absolute;
+            right: 12px;
+            bottom: 18px;
+            z-index: 500;
+            max-width: 280px;
+            max-height: 260px;
+            overflow: auto;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            padding: 11px;
+        }
+
+        .antiquity-person-panel {
+            max-height: clamp(520px, 72vh, 880px);
+            overflow: hidden;
+        }
+
+        .antiquity-person-list {
+            display: grid;
+            gap: 8px;
+            max-height: calc(clamp(520px, 72vh, 880px) - 92px);
+            overflow: auto;
+            padding: 2px 4px 8px;
+        }
+
+        .person-card {
+            display: grid;
+            grid-template-columns: 54px minmax(0, 1fr);
+            gap: 9px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--text);
+            cursor: pointer;
+            padding: 10px;
+            text-align: left;
+            box-shadow: 6px 6px 13px rgba(133, 153, 164, 0.34), -6px -6px 13px rgba(255, 255, 255, 0.88);
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .person-card:hover {
+            transform: translateY(-1px);
+        }
+
+        .person-card.active {
+            background: linear-gradient(135deg, rgba(8, 127, 122, 0.96), rgba(37, 111, 186, 0.96));
+            color: #fff;
+            box-shadow: var(--shadow-in);
+        }
+
+        .person-rank {
+            display: grid;
+            place-items: center;
+            min-width: 0;
+            height: 46px;
+            border-radius: 8px;
+            background: var(--panel-strong);
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+            box-shadow: var(--shadow-in);
+        }
+
+        .person-card.active .person-rank {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
+
+        .person-main {
+            min-width: 0;
+        }
+
+        .person-main strong,
+        .person-main span {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .person-main strong {
+            font-size: 13px;
+        }
+
+        .person-main span {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .person-card.active .person-main span {
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        .science-metrics {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .science-note {
+            display: block;
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .analysis-control-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .analysis-layer-button,
+        .analysis-crime-button {
+            border: 0;
+            border-radius: 8px;
+            background: var(--panel);
+            color: #26313a;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.1;
+            padding: 11px 13px;
+            text-align: left;
+            box-shadow: 6px 6px 13px rgba(133, 153, 164, 0.38), -6px -6px 13px rgba(255, 255, 255, 0.92);
+            transition: transform 160ms ease, box-shadow 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .analysis-layer-button:hover,
+        .analysis-crime-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .analysis-layer-button.active,
+        .analysis-crime-button.active {
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            color: #fff;
+            box-shadow: var(--shadow-in);
+        }
+
+        .analysis-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            padding: 14px;
+        }
+
+        .analysis-map-shell {
+            position: relative;
+            height: clamp(420px, 62vh, 760px);
+            min-height: 420px;
+            overflow: hidden;
+        }
+
+        #analysisMap {
+            position: absolute;
+            inset: 0;
+        }
+
+        .analysis-map-toolbar {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            left: 12px;
+            z-index: 500;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .analysis-status {
+            display: inline-flex;
+            align-items: center;
+            min-width: 220px;
+            justify-content: center;
+            color: var(--green);
+            font-size: 13px;
+            font-weight: 900;
+            padding: 0 13px;
+        }
+
+        .analysis-legend {
+            position: absolute;
+            right: 12px;
+            bottom: 18px;
+            z-index: 500;
+            max-width: 280px;
+            max-height: 260px;
+            overflow: auto;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            padding: 11px;
+        }
+
+        .analysis-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .analysis-chart-grid .chart-card canvas {
+            height: 226px !important;
+        }
+
+        .science-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .science-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            border-radius: 8px;
+            background: var(--panel-strong);
+            padding: 9px 10px;
+            font-size: 12px;
+            box-shadow: var(--shadow-in);
+        }
+
+        .science-row strong {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .science-row span {
+            min-width: 0;
+            overflow: hidden;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--muted);
+            font-weight: 900;
+        }
+
         .panel {
             border: 1px solid rgba(255, 255, 255, 0.78);
             border-radius: 8px;
@@ -591,12 +1100,64 @@
                     "details details";
             }
 
+            .analysis-grid {
+                grid-template-columns: 300px minmax(0, 1fr);
+                grid-template-areas:
+                    "analysis-sidebar analysis-main"
+                    "analysis-details analysis-details";
+            }
+
             .details {
+                min-height: auto;
+            }
+
+            .analysis-details {
                 min-height: auto;
             }
 
             .chart-grid {
                 grid-template-columns: minmax(0, 1fr);
+            }
+
+            .analysis-kpi-grid,
+            .analysis-chart-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .mapping-map-row {
+                grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+            }
+
+            .mapping-map-row .mapping-side-panel:last-child {
+                grid-column: 1 / -1;
+                max-height: 280px;
+            }
+
+            .mapping-filter-strip,
+            .mapping-bottom-filters,
+            .mapping-details-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .mapping-filter-group-wide {
+                grid-column: span 1;
+            }
+
+            .antiquity-main-grid,
+            .antiquity-filter-row {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .antiquity-kpi-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .antiquity-person-panel {
+                max-height: 420px;
+            }
+
+            .antiquity-person-list {
+                max-height: 330px;
             }
         }
 
@@ -606,6 +1167,14 @@
                 grid-template-areas:
                     "sidebar workspace"
                     "details details";
+                gap: 12px;
+            }
+
+            .analysis-grid {
+                grid-template-columns: minmax(210px, 0.72fr) minmax(0, 1.28fr);
+                grid-template-areas:
+                    "analysis-sidebar analysis-main"
+                    "analysis-details analysis-details";
                 gap: 12px;
             }
 
@@ -624,6 +1193,12 @@
                 padding: 12px;
             }
 
+            .analysis-sidebar,
+            .analysis-details {
+                min-height: auto;
+                padding: 12px;
+            }
+
             .map-shell {
                 min-height: 360px;
                 height: 58vh;
@@ -631,6 +1206,31 @@
 
             .chart-grid {
                 grid-template-columns: minmax(0, 1fr);
+            }
+
+            .analysis-chart-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .mapping-map-row,
+            .mapping-filter-strip,
+            .mapping-bottom-filters,
+            .mapping-details-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .mapping-side-panel,
+            .mapping-map-row .mapping-side-panel:last-child {
+                max-height: 260px;
+            }
+
+            .compact-filter-list {
+                max-height: 112px;
+            }
+
+            .antiquity-map-shell {
+                min-height: 420px;
+                height: 58vh;
             }
         }
 
@@ -655,12 +1255,25 @@
                 gap: 8px;
             }
 
+            .analysis-grid {
+                grid-template-columns: minmax(136px, 0.76fr) minmax(0, 1.24fr);
+                grid-template-areas:
+                    "analysis-sidebar analysis-main"
+                    "analysis-details analysis-details";
+                gap: 8px;
+            }
+
             .panel {
                 box-shadow: 5px 5px 14px rgba(133, 153, 164, 0.34), -5px -5px 14px rgba(255, 255, 255, 0.86);
             }
 
             .sidebar,
             .details {
+                padding: 9px;
+            }
+
+            .analysis-sidebar,
+            .analysis-details {
                 padding: 9px;
             }
 
@@ -691,7 +1304,11 @@
             .mode-button,
             .clear-button,
             .download-link,
-            .neo-button {
+            .neo-button,
+            .tab-button,
+            .analysis-layer-button,
+            .analysis-crime-button,
+            .analysis-status {
                 font-size: 10px;
             }
 
@@ -719,11 +1336,80 @@
                 height: 56vh;
             }
 
+            .analysis-map-shell {
+                min-height: 340px;
+                height: 58vh;
+            }
+
+            .analysis-kpi-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 8px;
+                padding: 9px;
+            }
+
+            .mapping-top-filters,
+            .mapping-bottom-filters,
+            .mapping-side-panel,
+            .mapping-table-panel {
+                padding: 9px;
+            }
+
+            .mapping-filter-head {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 8px;
+            }
+
+            .mapping-filter-group {
+                padding: 9px;
+            }
+
+            .mapping-side-panel,
+            .mapping-map-row .mapping-side-panel:last-child {
+                max-height: 230px;
+            }
+
+            .antiquity-toolbar,
+            .antiquity-person-panel,
+            .antiquity-table-panel {
+                padding: 9px;
+            }
+
+            .antiquity-kpi-row {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 8px;
+            }
+
+            .antiquity-map-shell {
+                min-height: 360px;
+                height: 56vh;
+            }
+
+            .antiquity-map-status {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+            }
+
+            .antiquity-legend {
+                right: 8px;
+                bottom: 10px;
+                font-size: 10px;
+                padding: 8px;
+            }
+
             .charts-section {
                 padding: 9px;
             }
 
             .map-toolbar {
+                grid-template-columns: 1fr;
+                top: 8px;
+                right: 8px;
+                left: 8px;
+                gap: 6px;
+            }
+
+            .analysis-map-toolbar {
                 grid-template-columns: 1fr;
                 top: 8px;
                 right: 8px;
@@ -744,7 +1430,20 @@
                 padding: 0 8px;
             }
 
+            .analysis-status {
+                min-width: 0;
+                height: 36px;
+                padding: 0 8px;
+            }
+
             .legend {
+                right: 8px;
+                bottom: 10px;
+                font-size: 10px;
+                padding: 8px;
+            }
+
+            .analysis-legend {
                 right: 8px;
                 bottom: 10px;
                 font-size: 10px;
@@ -812,6 +1511,13 @@
             </div>
         </header>
 
+        <nav class="tab-bar panel" aria-label="Abas do relatório">
+            <button class="tab-button active" data-tab="territorialPanel">Território PROERD</button>
+            <button class="tab-button" data-tab="mappingPanel">Análise científica</button>
+            <button class="tab-button" data-tab="antiquityPanel">Antiguidade</button>
+        </nav>
+
+        <section class="tab-panel" id="territorialPanel">
         <div class="content-grid">
             <aside class="sidebar panel">
                 <p class="source">{{ map_page.source }}</p>
@@ -836,7 +1542,7 @@
                 </section>
 
                 <div class="section">
-                    <p class="section-title">Camada do mapa</p>
+                    <p class="section-title">Geolicalização por</p>
                     <div class="mode-row">
                         <button class="layer-button active" data-layer="quantidade">Quantidade</button>
                         <button class="layer-button" data-layer="crpm">CRPM</button>
@@ -846,7 +1552,7 @@
                 </div>
 
                 <div class="section">
-                    <p class="section-title">Cor do mapa</p>
+                    <p class="section-title">Divisão por quantidade de escolas</p>
                     <div class="mode-row">
                         <button class="mode-button active" data-mode="escolas">Escolas</button>
                         <button class="mode-button" data-mode="alunos">Alunos</button>
@@ -950,10 +1656,254 @@
                 </div>
             </aside>
         </div>
+        </section>
+
+        <section class="tab-panel" id="mappingPanel" hidden>
+            <div class="mapping-board">
+                <section class="analysis-kpi-grid mapping-kpi-grid panel">
+                    <div class="metric">
+                        <strong id="mappingMetricCityRegions">{{ scientific_page.summary.municipalities_with_data }}</strong>
+                        <span>Região por cidade</span>
+                        <small class="science-note" id="mappingMetricCityRegionsNote">{{ scientific_page.summary.regions_total }} região(ões) de atividade</small>
+                    </div>
+                    <div class="metric">
+                        <strong id="mappingMetricInstructors">{{ scientific_page.summary.instructors_total }}</strong>
+                        <span>Instrutores</span>
+                        <small class="science-note" id="mappingMetricInstructorsNote">Total filtrado por POST/GRAD</small>
+                    </div>
+                    <div class="metric">
+                        <strong id="mappingMetricMonitors">{{ scientific_page.summary.monitors_total }}</strong>
+                        <span>Monitores</span>
+                        <small class="science-note" id="mappingMetricMonitorsNote">Total filtrado por POST/GRAD</small>
+                    </div>
+                    <div class="metric">
+                        <strong id="mappingMetricPostGrad">{{ scientific_page.filters.post_grads[0].label if scientific_page.filters.post_grads else "-" }}</strong>
+                        <span>POST/GRAD predominante</span>
+                        <small class="science-note" id="mappingMetricPostGradNote">{{ scientific_page.filters.post_grads[0].count if scientific_page.filters.post_grads else 0 }} registro(s)</small>
+                    </div>
+                </section>
+
+                <section class="mapping-top-filters panel">
+                    <div class="mapping-filter-head">
+                        <div>
+                            <p class="source">{{ scientific_page.source }}</p>
+                            <p class="selected-subtitle">{{ scientific_page.period }}</p>
+                        </div>
+                        <button class="clear-button mapping-clear-button" id="clearMappingFilters">Limpar filtros</button>
+                    </div>
+                    <div class="mapping-filter-strip">
+                        <div class="mapping-filter-group mapping-filter-group-wide">
+                            <p class="section-title">REGIÃO DE ATIVIDADE</p>
+                            <div class="analysis-control-list compact-filter-list" id="mappingRegionFilters"></div>
+                        </div>
+                        <div class="mapping-filter-group">
+                            <p class="section-title">Cidade onde está sendo feito</p>
+                            <div class="analysis-control-list compact-filter-list" id="mappingCityFilters"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mapping-map-row">
+                    <aside class="mapping-side-panel panel">
+                        <div class="section">
+                            <p class="section-title">Camada do mapa</p>
+                            <div class="analysis-control-list">
+                                <button class="analysis-layer-button active" data-analysis-layer="registros">Intensidade territorial</button>
+                                <button class="analysis-layer-button" data-analysis-layer="regions">Região de atividade</button>
+                                <button class="analysis-layer-button" data-analysis-layer="battalions">Batalhão</button>
+                                <button class="analysis-layer-button" data-analysis-layer="role_groups">Instrutor / Monitor</button>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <p class="section-title">Busca</p>
+                            <input class="search mapping-panel-search" id="mappingSearchInput" placeholder="Cidade, batalhão, nome ou POST/GRAD">
+                            <div class="status analysis-status mapping-panel-status" id="mappingActiveFilter">Todos os registros</div>
+                        </div>
+
+                        <div class="section">
+                            <p class="section-title">Resumo filtrado</p>
+                            <section class="detail-list mapping-detail-list" id="mappingDetailList"></section>
+                        </div>
+                    </aside>
+
+                    <section class="analysis-map-shell panel">
+                        <div id="analysisMap" aria-label="Mapa científico da aba Mapeamento"></div>
+                        <div class="legend analysis-legend" id="mappingLegend"></div>
+                    </section>
+
+                    <aside class="mapping-side-panel panel">
+                        <h2 class="selected-title" id="mappingSelectedTitle">Mapeamento</h2>
+                        <p class="selected-subtitle" id="mappingSelectedSubtitle">{{ scientific_page.period }}</p>
+
+                        <section class="section">
+                            <p class="section-title">REGIÃO DE ATIVIDADE POR CIDADE</p>
+                            <div class="science-list" id="mappingCityRegionList"></div>
+                        </section>
+
+                        <section class="section">
+                            <p class="section-title">Instrutor e monitor por POST/GRAD</p>
+                            <div class="science-list" id="mappingPostRoleList"></div>
+                        </section>
+                    </aside>
+                </section>
+
+                <section class="mapping-bottom-filters panel">
+                    <div class="mapping-filter-group">
+                        <p class="section-title">Função</p>
+                        <div class="analysis-control-list compact-filter-list" id="mappingFunctionFilters"></div>
+                    </div>
+                    <div class="mapping-filter-group">
+                        <p class="section-title">POST/GRAD</p>
+                        <div class="analysis-control-list compact-filter-list" id="mappingPostFilters"></div>
+                    </div>
+                    <div class="mapping-filter-group mapping-filter-group-wide">
+                        <p class="section-title">POST/GRAD + instrutor/monitor</p>
+                        <div class="analysis-control-list compact-filter-list" id="mappingPostRoleFilters"></div>
+                    </div>
+                    <div class="mapping-filter-group">
+                        <p class="section-title">Batalhão</p>
+                        <div class="analysis-control-list compact-filter-list" id="mappingBattalionFilters"></div>
+                    </div>
+                </section>
+
+                <section class="mapping-details-grid">
+                    <section class="charts-section panel">
+                        <p class="section-title">Painéis estatísticos</p>
+                        <div class="analysis-chart-grid">
+                            <div class="chart-card">
+                                <p class="section-title">Cidade</p>
+                                <canvas id="mappingRegionChart"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <p class="section-title">POST/GRAD + função</p>
+                                <canvas id="mappingFunctionChart"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <p class="section-title">Batalhão</p>
+                                <canvas id="mappingBattalionChart"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <p class="section-title">POST/GRAD</p>
+                                <canvas id="mappingPostChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+
+                    <aside class="mapping-table-panel panel">
+                        <section class="section">
+                            <p class="section-title">Ranking municipal</p>
+                            <div class="rank-panel" id="mappingCityRanking"></div>
+                        </section>
+
+                        <section class="section">
+                            <p class="section-title">Distribuição regional</p>
+                            <div class="science-list" id="mappingRegionList"></div>
+                        </section>
+
+                        <p class="section-title table-title">Registros filtrados</p>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Função</th>
+                                        <th>POST/GRAD</th>
+                                        <th>Cidade</th>
+                                        <th>Batalhão</th>
+                                        <th>Região</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mappingRecordsTable"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="section">
+                            <p class="section-title">Não mapeados</p>
+                            <div class="muted" id="mappingUnmatchedText"></div>
+                        </div>
+                    </aside>
+                </section>
+            </div>
+        </section>
+
+        <section class="tab-panel" id="antiquityPanel" hidden>
+            <div class="antiquity-board">
+                <section class="antiquity-toolbar panel">
+                    <div class="antiquity-kpi-row">
+                        <div class="metric">
+                            <strong id="antiquityMetricTotal">{{ scientific_page.summary.total_records }}</strong>
+                            <span>Registros</span>
+                            <small class="science-note">Ordenados por antiguidade</small>
+                        </div>
+                        <div class="metric">
+                            <strong id="antiquityMetricCities">{{ scientific_page.summary.municipalities_with_data }}</strong>
+                            <span>Municípios</span>
+                            <small class="science-note">Localização no mapa</small>
+                        </div>
+                        <div class="metric">
+                            <strong id="antiquityMetricPost">{{ scientific_page.filters.post_grads[0].label if scientific_page.filters.post_grads else "-" }}</strong>
+                            <span>POST/GRAD em destaque</span>
+                            <small class="science-note" id="antiquityMetricPostNote">{{ scientific_page.filters.post_grads[0].count if scientific_page.filters.post_grads else 0 }} registro(s)</small>
+                        </div>
+                        <div class="metric">
+                            <strong id="antiquityMetricFunction">{{ scientific_page.filters.role_groups[0].label if scientific_page.filters.role_groups else "-" }}</strong>
+                            <span>Função em destaque</span>
+                            <small class="science-note" id="antiquityMetricFunctionNote">{{ scientific_page.filters.role_groups[0].count if scientific_page.filters.role_groups else 0 }} registro(s)</small>
+                        </div>
+                    </div>
+
+                    <div class="antiquity-filter-row">
+                        <input class="search" id="antiquitySearchInput" placeholder="Buscar antiguidade, nome, função, cidade ou POST/GRAD">
+                        <select class="antiquity-select" id="antiquityPostFilter" aria-label="Filtrar por POST/GRAD"></select>
+                        <select class="antiquity-select" id="antiquityFunctionFilter" aria-label="Filtrar por função"></select>
+                        <select class="antiquity-select" id="antiquityCityFilter" aria-label="Filtrar por cidade"></select>
+                        <button class="clear-button mapping-clear-button" id="clearAntiquityFilters">Limpar filtros</button>
+                    </div>
+                </section>
+
+                <section class="antiquity-main-grid">
+                    <section class="antiquity-map-shell panel">
+                        <div id="antiquityMap" aria-label="Mapa de localização por antiguidade"></div>
+                        <div class="antiquity-map-status">
+                            <div class="status" id="antiquityActiveFilter">Todos os registros</div>
+                        </div>
+                        <div class="legend antiquity-legend" id="antiquityLegend"></div>
+                    </section>
+
+                    <aside class="antiquity-person-panel panel">
+                        <h2 class="selected-title">Antiguidade</h2>
+                        <p class="selected-subtitle">POST/GRAD, nome, função e localização</p>
+                        <div class="antiquity-person-list" id="antiquityPersonList"></div>
+                    </aside>
+                </section>
+
+                <section class="antiquity-table-panel panel">
+                    <p class="section-title">Relação por antiguidade</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Antiguidade</th>
+                                    <th>POST/GRAD</th>
+                                    <th>Nome</th>
+                                    <th>Função</th>
+                                    <th>Cidade</th>
+                                    <th>Região</th>
+                                    <th>Batalhão</th>
+                                </tr>
+                            </thead>
+                            <tbody id="antiquityTable"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </section>
     </div>
 
     <script>
         const pageData = {{ map_page | tojson }};
+        const scientificData = {{ scientific_page | tojson }};
         const state = {
             layer: "quantidade",
             mode: "escolas",
@@ -967,13 +1917,44 @@
             search: ""
         };
         const charts = {
-            column: null
+            column: null,
+            mappingRegion: null,
+            mappingFunction: null,
+            mappingBattalion: null,
+            mappingPost: null
+        };
+        const mappingState = {
+            layer: "registros",
+            filters: {
+                regions: [],
+                battalions: [],
+                functions: [],
+                role_groups: [],
+                post_grads: [],
+                post_roles: [],
+                cities: []
+            },
+            search: ""
+        };
+        const antiquityState = {
+            search: "",
+            post_grad: "",
+            function: "",
+            city: "",
+            selectedId: null
         };
         const categoryPalette = [
             "#087f7a", "#256fba", "#e7aa25", "#c54b3c", "#6a7d86", "#16323a",
             "#7c3aed", "#0f9f6e", "#b95622", "#12a4b8", "#8a6f2a", "#475569"
         ];
         let geoJsonLayer;
+        let mappingGeoJsonLayer;
+        let mappingCurrentCityRows = new Map();
+        let antiquityGeoJsonLayer;
+        let antiquityMarkerLayer;
+        let antiquityFeatureByCity = new Map();
+        let antiquityCurrentCityRows = new Map();
+        let antiquityMarkerByRecord = new Map();
 
         function formatNumber(value) {
             return new Intl.NumberFormat("pt-BR").format(value || 0);
@@ -989,6 +1970,29 @@
                 .replace(/[\u0300-\u036f]/g, "")
                 .toLowerCase();
         }
+
+        function escapeHtml(value) {
+            return String(value || "").replace(/[&<>"']/g, (char) => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
+        }
+
+        function mappingCityKey(value) {
+            const aliases = {
+                itapage: "itapaje",
+                limoeiro: "limoeirodonorte"
+            };
+            const key = normalizeText(value).replace(/[^a-z0-9]+/g, "");
+            return aliases[key] || key;
+        }
+
+        const mappingOfficialCities = new Map(
+            scientificData.mapped_rows.map((row) => [mappingCityKey(row.municipio_mapeado), row.municipio_mapeado])
+        );
 
         function selectedCities() {
             return state.filters.municipio_mapeado;
@@ -1495,6 +2499,774 @@
             `).join("") || '<tr><td colspan="6" class="muted">Nenhum registro encontrado</td></tr>';
         }
 
+        function mappingSelectedValues(field) {
+            return Array.isArray(mappingState.filters[field]) ? mappingState.filters[field] : [];
+        }
+
+        function mappingRecordMatches(record) {
+            if (mappingSelectedValues("regions").length && !mappingSelectedValues("regions").includes(record.region)) {
+                return false;
+            }
+            if (mappingSelectedValues("battalions").length && !mappingSelectedValues("battalions").includes(record.battalion)) {
+                return false;
+            }
+            if (mappingSelectedValues("functions").length && !mappingSelectedValues("functions").includes(record.function)) {
+                return false;
+            }
+            if (mappingSelectedValues("role_groups").length && !mappingSelectedValues("role_groups").includes(record.role_group)) {
+                return false;
+            }
+            if (mappingSelectedValues("post_grads").length && !mappingSelectedValues("post_grads").includes(record.post_grad)) {
+                return false;
+            }
+            if (mappingSelectedValues("post_roles").length && !mappingSelectedValues("post_roles").includes(record.post_role)) {
+                return false;
+            }
+            if (mappingSelectedValues("cities").length) {
+                const recordCityKeys = (record.cities || []).map(mappingCityKey);
+                const selectedCityKeys = mappingSelectedValues("cities").map(mappingCityKey);
+                if (!selectedCityKeys.some((city) => recordCityKeys.includes(city))) {
+                    return false;
+                }
+            }
+            if (!mappingState.search) {
+                return true;
+            }
+            return normalizeText([
+                record.name,
+                record.function,
+                record.post_grad,
+                record.raw_city,
+                record.battalion,
+                record.lotacao,
+                record.region
+            ].join(" ")).includes(mappingState.search);
+        }
+
+        function filteredMappingRecords() {
+            return scientificData.records.filter(mappingRecordMatches);
+        }
+
+        function addUnique(target, values) {
+            values.forEach((value) => {
+                if (value && !target.includes(value)) {
+                    target.push(value);
+                }
+            });
+            target.sort((a, b) => a.localeCompare(b, "pt-BR"));
+        }
+
+        function filteredMappingCityRows() {
+            const cityMap = new Map();
+            filteredMappingRecords().forEach((record) => {
+                (record.cities || []).forEach((city) => {
+                    const officialCity = mappingOfficialCities.get(mappingCityKey(city));
+                    if (!officialCity) {
+                        return;
+                    }
+                    if (!cityMap.has(officialCity)) {
+                        cityMap.set(officialCity, {
+                            municipio_mapeado: officialCity,
+                            registros: 0,
+                            regions: [],
+                            battalions: [],
+                            functions: [],
+                            role_groups: [],
+                            post_grads: [],
+                            post_roles: [],
+                            people: [],
+                            rows: []
+                        });
+                    }
+                    const row = cityMap.get(officialCity);
+                    row.registros += 1;
+                    row.rows.push(record);
+                    row.people.push(record.name);
+                    addUnique(row.regions, [record.region]);
+                    addUnique(row.battalions, [record.battalion]);
+                    addUnique(row.functions, [record.function]);
+                    addUnique(row.role_groups, [record.role_group]);
+                    addUnique(row.post_grads, [record.post_grad]);
+                    addUnique(row.post_roles, [record.post_role]);
+                });
+            });
+            return Array.from(cityMap.values())
+                .sort((a, b) => b.registros - a.registros || a.municipio_mapeado.localeCompare(b.municipio_mapeado, "pt-BR"));
+        }
+
+        function countMapping(records, field) {
+            const counts = new Map();
+            records.forEach((record) => {
+                const value = record[field] || "Não informado";
+                counts.set(value, (counts.get(value) || 0) + 1);
+            });
+            return Array.from(counts, ([label, count]) => ({ label, count }))
+                .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "pt-BR"));
+        }
+
+        function mappingFilterLabels() {
+            const labels = [];
+            if (mappingSelectedValues("regions").length) {
+                labels.push(`${mappingSelectedValues("regions").length} região(ões)`);
+            }
+            if (mappingSelectedValues("battalions").length) {
+                labels.push(`${mappingSelectedValues("battalions").length} batalhão(ões)`);
+            }
+            if (mappingSelectedValues("functions").length) {
+                labels.push(`${mappingSelectedValues("functions").length} função(ões)`);
+            }
+            if (mappingSelectedValues("role_groups").length) {
+                labels.push(`${mappingSelectedValues("role_groups").length} grupo(s) de função`);
+            }
+            if (mappingSelectedValues("post_grads").length) {
+                labels.push(`${mappingSelectedValues("post_grads").length} posto(s)`);
+            }
+            if (mappingSelectedValues("post_roles").length) {
+                labels.push(`${mappingSelectedValues("post_roles").length} POST/GRAD + função`);
+            }
+            if (mappingSelectedValues("cities").length) {
+                labels.push(`${mappingSelectedValues("cities").length} município(s)`);
+            }
+            if (mappingState.search) {
+                labels.push("busca ativa");
+            }
+            return labels;
+        }
+
+        function hasMappingFilters() {
+            return mappingFilterLabels().length > 0;
+        }
+
+        function toggleMappingFilter(field, value) {
+            const values = mappingSelectedValues(field);
+            mappingState.filters[field] = values.includes(value)
+                ? values.filter((item) => item !== value)
+                : [...values, value];
+        }
+
+        function renderMappingFilterGroup(containerId, field, options) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = options.map((item) => {
+                const active = mappingSelectedValues(field).includes(item.label);
+                return `
+                    <button class="analysis-crime-button ${active ? "active" : ""}" data-mapping-field="${field}" data-mapping-value="${escapeHtml(item.label)}">
+                        ${escapeHtml(item.label)} · ${formatNumber(item.count)}
+                    </button>
+                `;
+            }).join("");
+            container.querySelectorAll("[data-mapping-field]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    toggleMappingFilter(button.dataset.mappingField, button.dataset.mappingValue);
+                    updateMappingView();
+                });
+            });
+        }
+
+        function renderMappingFilters() {
+            renderMappingFilterGroup("mappingRegionFilters", "regions", scientificData.filters.regions);
+            renderMappingFilterGroup("mappingCityFilters", "cities", scientificData.filters.cities);
+            renderMappingFilterGroup("mappingBattalionFilters", "battalions", scientificData.filters.battalions);
+            renderMappingFilterGroup("mappingFunctionFilters", "role_groups", scientificData.filters.role_groups);
+            renderMappingFilterGroup("mappingPostFilters", "post_grads", scientificData.filters.post_grads);
+            renderMappingFilterGroup("mappingPostRoleFilters", "post_roles", scientificData.filters.post_roles);
+        }
+
+        function mappingCategoryOptions(field) {
+            const optionField = {
+                regions: "regions",
+                battalions: "battalions",
+                functions: "functions",
+                role_groups: "role_groups"
+            }[field];
+            return optionField ? scientificData.filters[optionField] || [] : [];
+        }
+
+        function mappingCategoryColor(value, field) {
+            const labels = mappingCategoryOptions(field).map((item) => item.label);
+            const index = Math.max(labels.indexOf(value), 0);
+            return categoryPalette[index % categoryPalette.length];
+        }
+
+        function mappingFeatureRow(feature) {
+            return mappingCurrentCityRows.get(feature.properties.nome) || null;
+        }
+
+        function mappingFillColor(feature) {
+            const source = feature.properties.mapeamento || {};
+            const row = mappingFeatureRow(feature);
+            if (!source.has_data) {
+                return "#d5dde2";
+            }
+            if (!row) {
+                return "#edf2f4";
+            }
+            if (mappingState.layer === "regions") {
+                return mappingCategoryColor(row.regions[0], "regions");
+            }
+            if (mappingState.layer === "battalions") {
+                return mappingCategoryColor(row.battalions[0], "battalions");
+            }
+            if (mappingState.layer === "role_groups") {
+                return mappingCategoryColor(row.role_groups[0], "role_groups");
+            }
+            const max = Math.max(...Array.from(mappingCurrentCityRows.values()).map((item) => item.registros), 1);
+            const ratio = row.registros / max;
+            if (ratio >= 0.66) {
+                return "#087f7a";
+            }
+            if (ratio >= 0.33) {
+                return "#256fba";
+            }
+            return "#e7aa25";
+        }
+
+        function mappingLayerStyle(feature) {
+            const source = feature.properties.mapeamento || {};
+            const row = mappingFeatureRow(feature);
+            const dimmed = source.has_data && !row && hasMappingFilters();
+            return {
+                color: row ? "#34535d" : "#a9b8bf",
+                weight: row ? 2.4 : 1,
+                fillColor: mappingFillColor(feature),
+                fillOpacity: dimmed ? 0.18 : source.has_data ? 0.72 : 0.34
+            };
+        }
+
+        function renderMappingLegend() {
+            const legend = document.getElementById("mappingLegend");
+            if (mappingState.layer === "registros") {
+                legend.innerHTML = `
+                    Intensidade por registros
+                    <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Baixa</div>
+                    <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Média</div>
+                    <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Alta</div>
+                    <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
+                `;
+                return;
+            }
+            const titles = {
+                regions: "Região de atividade",
+                battalions: "Batalhão",
+                functions: "Função",
+                role_groups: "Instrutor / Monitor"
+            };
+            legend.innerHTML = `
+                ${titles[mappingState.layer] || "Camada"}
+                ${mappingCategoryOptions(mappingState.layer).map((item) => `
+                    <div class="legend-row">
+                        <span class="swatch" style="background: ${mappingCategoryColor(item.label, mappingState.layer)}"></span>
+                        <span>${escapeHtml(item.label)} · ${formatNumber(item.count)}</span>
+                    </div>
+                `).join("")}
+                <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem dados</div>
+            `;
+        }
+
+        function renderMappingRanking(rows) {
+            const container = document.getElementById("mappingCityRanking");
+            const max = Math.max(...rows.slice(0, 10).map((row) => row.registros), 1);
+            container.innerHTML = rows.slice(0, 10).map((row) => `
+                <div class="rank-row">
+                    <span class="rank-label" title="${escapeHtml(row.municipio_mapeado)}">${escapeHtml(row.municipio_mapeado)}</span>
+                    <span class="rank-track">
+                        <span class="rank-fill" style="width:${Math.max(4, row.registros / max * 100)}%;"></span>
+                    </span>
+                    <span class="rank-value">${formatNumber(row.registros)}</span>
+                </div>
+            `).join("") || '<span class="muted">Sem dados para exibir</span>';
+        }
+
+        function renderMappingRegionList(items) {
+            const total = Math.max(items.reduce((sum, item) => sum + item.count, 0), 1);
+            document.getElementById("mappingRegionList").innerHTML = items.slice(0, 10).map((item) => `
+                <div class="science-row">
+                    <strong title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</strong>
+                    <span>${formatNumber(item.count)} · ${(item.count / total * 100).toFixed(1).replace(".", ",")}%</span>
+                </div>
+            `).join("") || '<span class="muted">Sem dados para exibir</span>';
+        }
+
+        function topCount(records, field) {
+            return countMapping(records, field)[0] || { label: "-", count: 0 };
+        }
+
+        function roleCount(records, role) {
+            return records.filter((record) => record.role_group === role).length;
+        }
+
+        function topPostGradForRole(records, role) {
+            return topCount(records.filter((record) => record.role_group === role), "post_grad");
+        }
+
+        function renderMappingCityRegionList(rows) {
+            document.getElementById("mappingCityRegionList").innerHTML = rows.slice(0, 12).map((row) => {
+                const instructors = roleCount(row.rows, "Instrutor");
+                const monitors = roleCount(row.rows, "Monitor");
+                return `
+                    <div class="science-row">
+                        <strong title="${escapeHtml(row.municipio_mapeado)}">${escapeHtml(row.municipio_mapeado)}</strong>
+                        <span>${escapeHtml((row.regions || []).join(", ") || "-")} · ${formatNumber(row.registros)} total · ${formatNumber(instructors)} inst. · ${formatNumber(monitors)} mon.</span>
+                    </div>
+                `;
+            }).join("") || '<span class="muted">Sem cidade para exibir</span>';
+        }
+
+        function renderMappingPostRoleList(records) {
+            const items = countMapping(records, "post_role");
+            document.getElementById("mappingPostRoleList").innerHTML = items.slice(0, 12).map((item) => `
+                <div class="science-row">
+                    <strong title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</strong>
+                    <span>${formatNumber(item.count)}</span>
+                </div>
+            `).join("") || '<span class="muted">Sem POST/GRAD para exibir</span>';
+        }
+
+        function updateMappingCards(records, rows) {
+            const regions = countMapping(records, "region");
+            const instructors = roleCount(records, "Instrutor");
+            const monitors = roleCount(records, "Monitor");
+            const topPostGrad = topCount(records, "post_grad");
+            const topInstructorPost = topPostGradForRole(records, "Instrutor");
+            const topMonitorPost = topPostGradForRole(records, "Monitor");
+
+            document.getElementById("mappingMetricCityRegions").textContent = formatNumber(rows.length);
+            document.getElementById("mappingMetricCityRegionsNote").textContent =
+                `${formatNumber(regions.length)} região(ões) de atividade no filtro`;
+            document.getElementById("mappingMetricInstructors").textContent = formatNumber(instructors);
+            document.getElementById("mappingMetricInstructorsNote").textContent =
+                topInstructorPost.count ? `${topInstructorPost.label} · ${formatNumber(topInstructorPost.count)}` : "Sem instrutor no filtro";
+            document.getElementById("mappingMetricMonitors").textContent = formatNumber(monitors);
+            document.getElementById("mappingMetricMonitorsNote").textContent =
+                topMonitorPost.count ? `${topMonitorPost.label} · ${formatNumber(topMonitorPost.count)}` : "Sem monitor no filtro";
+            document.getElementById("mappingMetricPostGrad").textContent = topPostGrad.label;
+            document.getElementById("mappingMetricPostGradNote").textContent = `${formatNumber(topPostGrad.count)} registro(s)`;
+        }
+
+        function renderMappingTable(records) {
+            const table = document.getElementById("mappingRecordsTable");
+            table.innerHTML = records.slice(0, 140).map((record) => `
+                <tr>
+                    <td>${escapeHtml(record.name)}</td>
+                    <td>${escapeHtml(record.function)}</td>
+                    <td>${escapeHtml(record.post_grad)}</td>
+                    <td>${escapeHtml(record.raw_city)}</td>
+                    <td>${escapeHtml(record.battalion)}</td>
+                    <td>${escapeHtml(record.region)}</td>
+                </tr>
+            `).join("") || '<tr><td colspan="6" class="muted">Nenhum registro encontrado</td></tr>';
+        }
+
+        function seniorityValue(record) {
+            const value = Number(record.seniority_sort || record.seniority);
+            return Number.isFinite(value) && value > 0 ? value : 9999;
+        }
+
+        function sortedBySeniority(records) {
+            return records.slice().sort((a, b) => {
+                const seniorityDiff = seniorityValue(a) - seniorityValue(b);
+                return seniorityDiff || String(a.name).localeCompare(String(b.name), "pt-BR");
+            });
+        }
+
+        function officialRecordCities(record) {
+            return (record.cities || [])
+                .map((city) => mappingOfficialCities.get(mappingCityKey(city)))
+                .filter(Boolean);
+        }
+
+        function antiquityRecordMatches(record) {
+            if (antiquityState.post_grad && record.post_grad !== antiquityState.post_grad) {
+                return false;
+            }
+            if (antiquityState.function && record.function !== antiquityState.function) {
+                return false;
+            }
+            if (antiquityState.city) {
+                const cityKeys = officialRecordCities(record).map(mappingCityKey);
+                if (!cityKeys.includes(mappingCityKey(antiquityState.city))) {
+                    return false;
+                }
+            }
+            if (!antiquityState.search) {
+                return true;
+            }
+            return normalizeText([
+                record.seniority,
+                record.post_grad,
+                record.name,
+                record.function,
+                record.raw_city,
+                record.region,
+                record.battalion
+            ].join(" ")).includes(antiquityState.search);
+        }
+
+        function filteredAntiquityRecords() {
+            return sortedBySeniority(scientificData.records.filter(antiquityRecordMatches));
+        }
+
+        function countAntiquity(records, field) {
+            return countMapping(records, field);
+        }
+
+        function buildAntiquityCityRows(records) {
+            const cityMap = new Map();
+            records.forEach((record) => {
+                officialRecordCities(record).forEach((city) => {
+                    if (!cityMap.has(city)) {
+                        cityMap.set(city, {
+                            municipio_mapeado: city,
+                            registros: 0,
+                            post_grads: [],
+                            functions: [],
+                            role_groups: [],
+                            people: [],
+                            rows: []
+                        });
+                    }
+                    const row = cityMap.get(city);
+                    row.registros += 1;
+                    row.rows.push(record);
+                    row.people.push(record.name);
+                    addUnique(row.post_grads, [record.post_grad]);
+                    addUnique(row.functions, [record.function]);
+                    addUnique(row.role_groups, [record.role_group]);
+                });
+            });
+            return Array.from(cityMap.values())
+                .sort((a, b) => b.registros - a.registros || a.municipio_mapeado.localeCompare(b.municipio_mapeado, "pt-BR"));
+        }
+
+        function renderAntiquitySelect(selectId, options, selectedValue, allLabel) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = `
+                <option value="">${allLabel}</option>
+                ${options.map((item) => `
+                    <option value="${escapeHtml(item.label)}" ${item.label === selectedValue ? "selected" : ""}>
+                        ${escapeHtml(item.label)} · ${formatNumber(item.count)}
+                    </option>
+                `).join("")}
+            `;
+        }
+
+        function renderAntiquityFilters() {
+            renderAntiquitySelect("antiquityPostFilter", scientificData.filters.post_grads, antiquityState.post_grad, "Todos os POST/GRAD");
+            renderAntiquitySelect("antiquityFunctionFilter", scientificData.filters.functions, antiquityState.function, "Todas as funções");
+            renderAntiquitySelect("antiquityCityFilter", scientificData.filters.cities, antiquityState.city, "Todas as cidades");
+        }
+
+        function antiquityFilterLabels() {
+            const labels = [];
+            if (antiquityState.post_grad) {
+                labels.push(antiquityState.post_grad);
+            }
+            if (antiquityState.function) {
+                labels.push(antiquityState.function);
+            }
+            if (antiquityState.city) {
+                labels.push(antiquityState.city);
+            }
+            if (antiquityState.search) {
+                labels.push("busca ativa");
+            }
+            return labels;
+        }
+
+        function featureCenter(feature) {
+            return L.geoJSON(feature).getBounds().getCenter();
+        }
+
+        function antiquityFeatureStyle(feature) {
+            const source = feature.properties.mapeamento || {};
+            const row = antiquityCurrentCityRows.get(feature.properties.nome);
+            return {
+                color: row ? "#34535d" : "#a9b8bf",
+                weight: row ? 2.4 : 1,
+                fillColor: row ? "#087f7a" : source.has_data ? "#edf2f4" : "#d5dde2",
+                fillOpacity: row ? 0.34 : source.has_data ? 0.16 : 0.28
+            };
+        }
+
+        function roleColor(record) {
+            if (record.role_group === "Instrutor") {
+                return "#087f7a";
+            }
+            if (record.role_group === "Monitor") {
+                return "#256fba";
+            }
+            if (record.role_group === "Coordenador") {
+                return "#e7aa25";
+            }
+            return "#c54b3c";
+        }
+
+        function recordPopup(record, city) {
+            return `
+                <strong>${escapeHtml(record.seniority)}º · ${escapeHtml(record.name)}</strong><br>
+                POST/GRAD: ${escapeHtml(record.post_grad)}<br>
+                Função: ${escapeHtml(record.function)}<br>
+                Cidade: ${escapeHtml(city || record.raw_city)}<br>
+                Região: ${escapeHtml(record.region)}<br>
+                Batalhão: ${escapeHtml(record.battalion)}
+            `;
+        }
+
+        function renderAntiquityMarkers(records) {
+            antiquityMarkerLayer.clearLayers();
+            antiquityMarkerByRecord = new Map();
+            const citySequence = new Map();
+
+            records.forEach((record) => {
+                officialRecordCities(record).forEach((city) => {
+                    const feature = antiquityFeatureByCity.get(city);
+                    if (!feature) {
+                        return;
+                    }
+                    const center = featureCenter(feature);
+                    const index = citySequence.get(city) || 0;
+                    citySequence.set(city, index + 1);
+                    const angle = index * 0.92;
+                    const radius = 0.018 + Math.floor(index / 8) * 0.008;
+                    const marker = L.circleMarker(
+                        [center.lat + Math.sin(angle) * radius, center.lng + Math.cos(angle) * radius],
+                        {
+                            radius: record.id === antiquityState.selectedId ? 9 : 6,
+                            color: "#16323a",
+                            weight: record.id === antiquityState.selectedId ? 2.6 : 1.4,
+                            fillColor: roleColor(record),
+                            fillOpacity: 0.92
+                        }
+                    ).bindPopup(recordPopup(record, city));
+
+                    marker.on("click", () => {
+                        antiquityState.selectedId = record.id;
+                        updateAntiquityView(false);
+                    });
+                    marker.addTo(antiquityMarkerLayer);
+                    if (!antiquityMarkerByRecord.has(record.id)) {
+                        antiquityMarkerByRecord.set(record.id, marker);
+                    }
+                });
+            });
+        }
+
+        function renderAntiquityLegend() {
+            document.getElementById("antiquityLegend").innerHTML = `
+                Localização por função
+                <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Instrutor</div>
+                <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Monitor</div>
+                <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Coordenador</div>
+                <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem registro</div>
+            `;
+        }
+
+        function updateAntiquityCards(records, rows) {
+            const topPost = topCount(records, "post_grad");
+            const topFunction = topCount(records, "function");
+            document.getElementById("antiquityMetricTotal").textContent = formatNumber(records.length);
+            document.getElementById("antiquityMetricCities").textContent = formatNumber(rows.length);
+            document.getElementById("antiquityMetricPost").textContent = topPost.label;
+            document.getElementById("antiquityMetricPostNote").textContent = `${formatNumber(topPost.count)} registro(s)`;
+            document.getElementById("antiquityMetricFunction").textContent = topFunction.label;
+            document.getElementById("antiquityMetricFunctionNote").textContent = `${formatNumber(topFunction.count)} registro(s)`;
+        }
+
+        function renderAntiquityPersonList(records) {
+            const container = document.getElementById("antiquityPersonList");
+            container.innerHTML = records.map((record) => `
+                <button class="person-card ${record.id === antiquityState.selectedId ? "active" : ""}" data-antiquity-id="${record.id}">
+                    <span class="person-rank">${escapeHtml(record.seniority)}</span>
+                    <span class="person-main">
+                        <strong>${escapeHtml(record.name)}</strong>
+                        <span>${escapeHtml(record.post_grad)} · ${escapeHtml(record.function)}</span>
+                        <span>${escapeHtml(record.raw_city)}</span>
+                    </span>
+                </button>
+            `).join("") || '<span class="muted">Nenhum registro encontrado</span>';
+
+            container.querySelectorAll("[data-antiquity-id]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    antiquityState.selectedId = Number(button.dataset.antiquityId);
+                    updateAntiquityView(true);
+                });
+            });
+        }
+
+        function renderAntiquityTable(records) {
+            const table = document.getElementById("antiquityTable");
+            table.innerHTML = records.map((record) => `
+                <tr>
+                    <td>${escapeHtml(record.seniority)}</td>
+                    <td>${escapeHtml(record.post_grad)}</td>
+                    <td>${escapeHtml(record.name)}</td>
+                    <td>${escapeHtml(record.function)}</td>
+                    <td>${escapeHtml(record.raw_city)}</td>
+                    <td>${escapeHtml(record.region)}</td>
+                    <td>${escapeHtml(record.battalion)}</td>
+                </tr>
+            `).join("") || '<tr><td colspan="7" class="muted">Nenhum registro encontrado</td></tr>';
+        }
+
+        function updateAntiquityView(openSelected = false) {
+            const records = filteredAntiquityRecords();
+            const rows = buildAntiquityCityRows(records);
+            antiquityCurrentCityRows = new Map(rows.map((row) => [row.municipio_mapeado, row]));
+            if (antiquityState.selectedId && !records.some((record) => record.id === antiquityState.selectedId)) {
+                antiquityState.selectedId = records[0]?.id || null;
+            }
+            renderAntiquityFilters();
+            updateAntiquityCards(records, rows);
+            renderAntiquityPersonList(records);
+            renderAntiquityTable(records);
+            renderAntiquityMarkers(records);
+            antiquityGeoJsonLayer.eachLayer((layer) => layer.setStyle(antiquityFeatureStyle(layer.feature)));
+            renderAntiquityLegend();
+            document.getElementById("antiquityActiveFilter").textContent = antiquityFilterLabels().length
+                ? antiquityFilterLabels().join(" + ")
+                : "Todos os registros";
+
+            if (openSelected && antiquityState.selectedId && antiquityMarkerByRecord.has(antiquityState.selectedId)) {
+                const marker = antiquityMarkerByRecord.get(antiquityState.selectedId);
+                antiquityMap.setView(marker.getLatLng(), Math.max(antiquityMap.getZoom(), 9), { animate: true });
+                marker.openPopup();
+            }
+        }
+
+        function renderMappingChart(chartKey, canvasId, items, color) {
+            if (!window.Chart) {
+                return;
+            }
+            const labels = items.slice(0, 10).map((item) => item.label);
+            const data = {
+                labels: labels.map((label) => axisLabel(label)),
+                datasets: [{
+                    label: "Registros",
+                    data: items.slice(0, 10).map((item) => item.count),
+                    backgroundColor: color,
+                    borderRadius: 6,
+                    categoryPercentage: 0.72,
+                    barPercentage: 0.82
+                }]
+            };
+            if (charts[chartKey]) {
+                charts[chartKey].data = data;
+                charts[chartKey].resize();
+                charts[chartKey].update();
+                return;
+            }
+            charts[chartKey] = new Chart(document.getElementById(canvasId), {
+                type: "bar",
+                data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title(items) {
+                                    return labels[items[0].dataIndex];
+                                },
+                                label(context) {
+                                    return `Registros: ${formatNumber(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: false,
+                                font: { size: 10, weight: "700" }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderMappingCharts(records, rows) {
+            renderMappingChart(
+                "mappingRegion",
+                "mappingRegionChart",
+                rows.map((row) => ({ label: row.municipio_mapeado, count: row.registros })),
+                "#087f7a"
+            );
+            renderMappingChart("mappingFunction", "mappingFunctionChart", countMapping(records, "post_role"), "#e7aa25");
+            renderMappingChart("mappingBattalion", "mappingBattalionChart", countMapping(records, "battalion"), "#256fba");
+            renderMappingChart("mappingPost", "mappingPostChart", countMapping(records, "post_grad"), "#c54b3c");
+        }
+
+        function updateMappingLayerButtons() {
+            document.querySelectorAll(".analysis-layer-button").forEach((button) => {
+                button.classList.toggle("active", button.dataset.analysisLayer === mappingState.layer);
+            });
+        }
+
+        function updateMappingDetails(records, rows) {
+            const regions = countMapping(records, "region");
+            const roleGroups = countMapping(records, "role_group");
+            const postRoles = countMapping(records, "post_role");
+            const instructors = roleCount(records, "Instrutor");
+            const monitors = roleCount(records, "Monitor");
+            const coordinators = roleCount(records, "Coordenador");
+            document.getElementById("mappingSelectedTitle").textContent = mappingSelectedValues("cities").length
+                ? "Seleção territorial"
+                : "Mapeamento";
+            document.getElementById("mappingSelectedSubtitle").textContent = hasMappingFilters()
+                ? mappingFilterLabels().join(" + ")
+                : scientificData.period;
+            document.getElementById("mappingDetailList").innerHTML = [
+                ["Registros", formatNumber(records.length)],
+                ["Municípios", formatNumber(rows.length)],
+                ["Regiões", formatNumber(regions.length)],
+                ["Instrutores", formatNumber(instructors)],
+                ["Monitores", formatNumber(monitors)],
+                ["Coordenadores", formatNumber(coordinators)],
+                ["POST/GRAD", formatNumber(countMapping(records, "post_grad").length)],
+                ["Principal região", regions[0] ? `${regions[0].label} (${formatNumber(regions[0].count)})` : "-"],
+                ["Principal função", roleGroups[0] ? `${roleGroups[0].label} (${formatNumber(roleGroups[0].count)})` : "-"],
+                ["POST/GRAD + função", postRoles[0] ? `${postRoles[0].label} (${formatNumber(postRoles[0].count)})` : "-"]
+            ].map(([label, value]) => `
+                <div class="detail-row">
+                    <span>${label}</span>
+                    <span>${escapeHtml(value)}</span>
+                </div>
+            `).join("");
+            updateMappingCards(records, rows);
+            renderMappingRanking(rows);
+            renderMappingRegionList(regions);
+            renderMappingCityRegionList(rows);
+            renderMappingPostRoleList(records);
+            renderMappingTable(records);
+            document.getElementById("mappingUnmatchedText").textContent =
+                `${formatNumber(scientificData.summary.unmatched_rows)} registro(s) sem município compatível na malha oficial.`;
+        }
+
+        function updateMappingMap() {
+            mappingGeoJsonLayer.eachLayer((layer) => layer.setStyle(mappingLayerStyle(layer.feature)));
+        }
+
+        function updateMappingView() {
+            const records = filteredMappingRecords();
+            const rows = filteredMappingCityRows();
+            mappingCurrentCityRows = new Map(rows.map((row) => [row.municipio_mapeado, row]));
+            renderMappingFilters();
+            updateMappingLayerButtons();
+            renderMappingLegend();
+            renderMappingCharts(records, rows);
+            updateMappingDetails(records, rows);
+            updateMappingMap();
+            document.getElementById("mappingActiveFilter").textContent = hasMappingFilters()
+                ? mappingFilterLabels().join(" + ")
+                : "Todos os registros";
+        }
+
         function updateMap() {
             geoJsonLayer.eachLayer((layer) => layer.setStyle(layerStyle(layer.feature)));
         }
@@ -1566,9 +3338,98 @@
         }).addTo(map);
         map.fitBounds(geoJsonLayer.getBounds(), { padding: [18, 18] });
 
+        const mappingMap = L.map("analysisMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap"
+        }).addTo(mappingMap);
+
+        mappingGeoJsonLayer = L.geoJSON(scientificData.geojson, {
+            style: mappingLayerStyle,
+            onEachFeature(feature, layer) {
+                layer.on({
+                    click() {
+                        const source = feature.properties.mapeamento || {};
+                        if (source.has_data) {
+                            toggleMappingFilter("cities", feature.properties.nome);
+                            updateMappingView();
+                        }
+                        layer.openPopup();
+                    },
+                    mouseover() {
+                        layer.setStyle({ weight: 2.8, color: "#c54b3c" });
+                    },
+                    mouseout() {
+                        layer.setStyle(mappingLayerStyle(feature));
+                    }
+                });
+                layer.bindPopup(() => {
+                    const city = feature.properties.nome;
+                    const row = mappingFeatureRow(feature);
+                    const source = feature.properties.mapeamento || {};
+                    const data = row || source;
+                    return `
+                        <strong>${escapeHtml(city)}</strong><br>
+                        Registros: ${formatNumber(data.registros)}<br>
+                        Região: ${escapeHtml((data.regions || []).join(", ") || "-")}<br>
+                        Batalhão: ${escapeHtml((data.battalions || []).join(", ") || "-")}<br>
+                        Função: ${escapeHtml((data.role_groups || data.functions || []).join(", ") || "-")}<br>
+                        POST/GRAD: ${escapeHtml((data.post_grads || []).join(", ") || "-")}<br>
+                        <span>${mappingSelectedValues("cities").includes(city) ? "Selecionado" : "Clique para selecionar"}</span>
+                    `;
+                });
+            }
+        }).addTo(mappingMap);
+        mappingMap.fitBounds(mappingGeoJsonLayer.getBounds(), { padding: [18, 18] });
+
+        const antiquityMap = L.map("antiquityMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap"
+        }).addTo(antiquityMap);
+
+        antiquityFeatureByCity = new Map(
+            scientificData.geojson.features.map((feature) => [feature.properties.nome, feature])
+        );
+        antiquityGeoJsonLayer = L.geoJSON(scientificData.geojson, {
+            style: antiquityFeatureStyle,
+            onEachFeature(feature, layer) {
+                layer.on({
+                    click() {
+                        const source = feature.properties.mapeamento || {};
+                        if (source.has_data) {
+                            antiquityState.city = feature.properties.nome;
+                            antiquityState.selectedId = null;
+                            updateAntiquityView(false);
+                        }
+                        layer.openPopup();
+                    },
+                    mouseover() {
+                        layer.setStyle({ weight: 2.8, color: "#c54b3c" });
+                    },
+                    mouseout() {
+                        layer.setStyle(antiquityFeatureStyle(feature));
+                    }
+                });
+                layer.bindPopup(() => {
+                    const row = antiquityCurrentCityRows.get(feature.properties.nome);
+                    return `
+                        <strong>${escapeHtml(feature.properties.nome)}</strong><br>
+                        Registros filtrados: ${formatNumber(row?.registros || 0)}<br>
+                        Pessoas: ${escapeHtml((row?.people || []).slice(0, 8).join(", ") || "-")}<br>
+                        <span>Clique para filtrar esta cidade</span>
+                    `;
+                });
+            }
+        }).addTo(antiquityMap);
+        antiquityMarkerLayer = L.layerGroup().addTo(antiquityMap);
+        antiquityMap.fitBounds(antiquityGeoJsonLayer.getBounds(), { padding: [18, 18] });
+
         window.addEventListener("resize", () => {
             window.requestAnimationFrame(() => {
                 map.invalidateSize();
+                mappingMap.invalidateSize();
+                antiquityMap.invalidateSize();
                 Object.values(charts).forEach((chart) => chart?.resize());
             });
         });
@@ -1589,6 +3450,58 @@
             updateView();
         });
 
+        document.getElementById("mappingSearchInput").addEventListener("input", (event) => {
+            mappingState.search = normalizeText(event.target.value);
+            updateMappingView();
+        });
+
+        document.getElementById("clearMappingFilters").addEventListener("click", () => {
+            mappingState.filters.regions = [];
+            mappingState.filters.battalions = [];
+            mappingState.filters.functions = [];
+            mappingState.filters.role_groups = [];
+            mappingState.filters.post_grads = [];
+            mappingState.filters.post_roles = [];
+            mappingState.filters.cities = [];
+            mappingState.search = "";
+            document.getElementById("mappingSearchInput").value = "";
+            updateMappingView();
+        });
+
+        document.getElementById("antiquitySearchInput").addEventListener("input", (event) => {
+            antiquityState.search = normalizeText(event.target.value);
+            antiquityState.selectedId = null;
+            updateAntiquityView(false);
+        });
+
+        document.getElementById("antiquityPostFilter").addEventListener("change", (event) => {
+            antiquityState.post_grad = event.target.value;
+            antiquityState.selectedId = null;
+            updateAntiquityView(false);
+        });
+
+        document.getElementById("antiquityFunctionFilter").addEventListener("change", (event) => {
+            antiquityState.function = event.target.value;
+            antiquityState.selectedId = null;
+            updateAntiquityView(false);
+        });
+
+        document.getElementById("antiquityCityFilter").addEventListener("change", (event) => {
+            antiquityState.city = event.target.value;
+            antiquityState.selectedId = null;
+            updateAntiquityView(false);
+        });
+
+        document.getElementById("clearAntiquityFilters").addEventListener("click", () => {
+            antiquityState.search = "";
+            antiquityState.post_grad = "";
+            antiquityState.function = "";
+            antiquityState.city = "";
+            antiquityState.selectedId = null;
+            document.getElementById("antiquitySearchInput").value = "";
+            updateAntiquityView(false);
+        });
+
         document.querySelectorAll(".mode-button").forEach((button) => {
             button.addEventListener("click", () => {
                 state.mode = button.dataset.mode;
@@ -1603,12 +3516,44 @@
             });
         });
 
+        document.querySelectorAll(".analysis-layer-button").forEach((button) => {
+            button.addEventListener("click", () => {
+                mappingState.layer = button.dataset.analysisLayer;
+                updateMappingView();
+            });
+        });
+
+        document.querySelectorAll(".tab-button").forEach((button) => {
+            button.addEventListener("click", () => {
+                document.querySelectorAll(".tab-button").forEach((item) => {
+                    item.classList.toggle("active", item === button);
+                });
+                document.querySelectorAll(".tab-panel").forEach((panel) => {
+                    panel.hidden = panel.id !== button.dataset.tab;
+                });
+                window.requestAnimationFrame(() => {
+                    map.invalidateSize();
+                    mappingMap.invalidateSize();
+                    if (button.dataset.tab === "mappingPanel") {
+                        mappingMap.fitBounds(mappingGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                    }
+                    if (button.dataset.tab === "antiquityPanel") {
+                        antiquityMap.invalidateSize();
+                        antiquityMap.fitBounds(antiquityGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                    }
+                    Object.values(charts).forEach((chart) => chart?.resize());
+                });
+            });
+        });
+
         renderFilters();
         updateMetrics();
         renderDashboards();
         renderCharts();
         renderLegend();
         setDetails();
+        updateMappingView();
+        updateAntiquityView(false);
     </script>
 </body>
 </html>

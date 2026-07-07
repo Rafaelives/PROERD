@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from functools import lru_cache
 import html
 import json
+from math import sqrt
 import os
 from pathlib import Path
 import re
@@ -34,6 +35,7 @@ MAP_CRIME_CATEGORIES = {
     "ACHADO DE CADÁVER": {"label": "Achado de cadáver", "color": "#111111"},
     "TENTATIVA DE HOMICÍDIO": {"label": "Tentativa de homicídio", "color": "#12c8c6"},
 }
+MAPPING_SHEET_NAME = "Mapeamento"
 CEARA_MALHA_URL = (
     "https://servicodados.ibge.gov.br/api/v3/malhas/estados/23"
     "?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio"
@@ -622,6 +624,116 @@ def _student_range(value):
     return "Sem alunos"
 
 
+def _clean_mapping_label(record, key):
+    return (record.get(key) or "Não informado").strip() or "Não informado"
+
+
+def _first_mapping_label(record, *keys):
+    for key in keys:
+        value = (record.get(key) or "").strip()
+        if value:
+            return value
+    return "Não informado"
+
+
+def _mapping_cities(value):
+    cities = [
+        city.strip()
+        for city in re.split(r"[/;]", str(value or ""))
+        if city.strip()
+    ]
+    return cities or ["Não informado"]
+
+
+def _mapping_role_group(value):
+    normalized = _normalize_key(value)
+    if "instrutor" in normalized:
+        return "Instrutor"
+    if "monitor" in normalized:
+        return "Monitor"
+    if "coord" in normalized:
+        return "Coordenador"
+    return "Outra função"
+
+
+def _mapping_option_counts(records, key):
+    counter = Counter()
+    for record in records:
+        value = record.get(key)
+        if isinstance(value, list):
+            counter.update(item for item in value if item)
+        elif value:
+            counter[value] += 1
+    return [
+        {"label": label, "count": count}
+        for label, count in sorted(counter.items(), key=lambda item: (-item[1], item[0]))
+    ]
+
+
+def _mapping_city_rows(records, geojson):
+    municipality_by_key = {
+        _municipality_key(feature.get("properties", {}).get("nome")): feature
+        for feature in geojson.get("features", [])
+    }
+    rows_by_municipality = {}
+    unmatched_rows = []
+
+    for record in records:
+        matched_any = False
+        for city in record["cities"]:
+            feature = municipality_by_key.get(_municipality_key(city))
+            if not feature:
+                continue
+
+            matched_any = True
+            municipality = feature["properties"]["nome"]
+            key = _municipality_key(municipality)
+            row = rows_by_municipality.setdefault(
+                key,
+                {
+                    "municipio_mapeado": municipality,
+                    "registros": 0,
+                    "regions": [],
+                    "battalions": [],
+                    "functions": [],
+                    "role_groups": [],
+                    "post_grads": [],
+                    "post_roles": [],
+                    "people": [],
+                    "rows": [],
+                },
+            )
+            row["registros"] += 1
+            row["rows"].append(record)
+            row["people"].append(record["name"])
+            row["regions"] = _unique_labels([*row["regions"], record["region"]])
+            row["battalions"] = _unique_labels([*row["battalions"], record["battalion"]])
+            row["functions"] = _unique_labels([*row["functions"], record["function"]])
+            row["role_groups"] = _unique_labels([*row["role_groups"], record["role_group"]])
+            row["post_grads"] = _unique_labels([*row["post_grads"], record["post_grad"]])
+            row["post_roles"] = _unique_labels([*row["post_roles"], record["post_role"]])
+
+        if not matched_any:
+            unmatched_rows.append(record)
+
+    for feature in geojson.get("features", []):
+        properties = feature.setdefault("properties", {})
+        row = rows_by_municipality.get(_municipality_key(properties.get("nome")))
+        properties["mapeamento"] = {
+            "has_data": bool(row),
+            "registros": row["registros"] if row else 0,
+            "regions": row["regions"] if row else [],
+            "battalions": row["battalions"] if row else [],
+            "functions": row["functions"] if row else [],
+            "role_groups": row["role_groups"] if row else [],
+            "post_grads": row["post_grads"] if row else [],
+            "post_roles": row["post_roles"] if row else [],
+            "people": row["people"] if row else [],
+        }
+
+    return list(rows_by_municipality.values()), unmatched_rows
+
+
 def get_territorial_data():
     geojson = _load_ceara_geojson()
     raw_records = _read_xlsx_sheet(_workbook_path(), "DADOS")
@@ -778,6 +890,21 @@ def _excel_dates(records):
 
 def _top_counter(records, column, limit=5):
     return Counter(record.get(column) or "Não informado" for record in records).most_common(limit)
+
+
+def _pearson_correlation(points):
+    if len(points) < 2:
+        return None
+
+    xs = [point["x"] for point in points]
+    ys = [point["y"] for point in points]
+    mean_x = sum(xs) / len(xs)
+    mean_y = sum(ys) / len(ys)
+    covariance = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
+    variance_x = sum((x - mean_x) ** 2 for x in xs)
+    variance_y = sum((y - mean_y) ** 2 for y in ys)
+    denominator = sqrt(variance_x * variance_y)
+    return covariance / denominator if denominator else None
 
 
 def _map_crime_key(crime):
@@ -971,176 +1098,157 @@ def _crime_tree(records):
 
 @lru_cache(maxsize=1)
 def get_dashboard_data():
-    records = _read_xlsx_sheet(_workbook_path(), "Análise")
-    total = len(records)
-    date_range = _excel_date_range(records)
-    dates = _excel_dates(records)
+    geojson = _load_ceara_geojson()
+    raw_records = _read_xlsx_sheet(_workbook_path(), MAPPING_SHEET_NAME)
+    records = []
 
-    crimes = _top_counter(records, "CRIME", 6)
-    detailed_crimes = _top_counter(records, "CRIME DETALHADO", 5)
-    turns = Counter(record.get("TURNO") or "Não informado" for record in records)
-    battalions = Counter(record.get("BATALHÃO") or "Não informado" for record in records)
-    ais_counter = Counter(record.get("AIS") or "Não informado" for record in records)
-    weekday_counter = Counter(record.get("DIA DA SEMANA") or "Não informado" for record in records)
-    city_metrics = _city_metrics(records)
-    ceara_map_points = _map_layer_points(records, "ceara")
-    fortaleza_map_points = _map_layer_points(records, "fortaleza")
-
-    top_crime, top_crime_count = crimes[0]
-    top_crime_share = top_crime_count / total * 100
-    night_count = turns.get("Noite", 0) + turns.get("Madrugada", 0)
-    unique_cities = len({item["city"] for item in city_metrics if item["city"] != "Não informado"})
-
-    battalion_effective = {}
-    for record in records:
-        battalion = record.get("BATALHÃO") or "Não informado"
-        effective = _to_float(record.get("EFETIVO"))
-        if effective:
-            battalion_effective[battalion] = effective
-
-    top_battalions = battalions.most_common(8)
-    rates_by_battalion = [
-        round(count / battalion_effective[battalion], 2) if battalion_effective.get(battalion) else 0
-        for battalion, count in top_battalions
-    ]
-
-    top_cities = sorted(
-        [item for item in city_metrics if item["rate"] is not None],
-        key=lambda item: item["rate"],
-        reverse=True,
-    )[:8]
-
-    treemap_colors = ["#8f6bcc", "#35df72", "#087f3f", "#b95622", "#7b7f84", "#12c8c6", "#e11d1d"]
-    treemap = []
-    max_treemap_count = max((count for _, count in detailed_crimes), default=1)
-    for index, (label, count) in enumerate(detailed_crimes[:7]):
-        treemap.append(
+    for index, record in enumerate(raw_records, start=1):
+        raw_city = _clean_mapping_label(record, "CIDADE")
+        post_grad = _clean_mapping_label(record, "POST/GRAD")
+        function = _clean_mapping_label(record, "FUNÇÃO")
+        role_group = _mapping_role_group(function)
+        seniority = _first_mapping_label(record, "ANTIGUIDADE", "ORD ANT.")
+        records.append(
             {
-                "label": label,
-                "count": count,
-                "value": _format_number(count),
-                "share": f"{count / total * 100:.1f}%".replace(".", ","),
-                "color": treemap_colors[index % len(treemap_colors)],
-                "weight": max(18, round(count / max_treemap_count * 100, 1)),
+                "id": index,
+                "seniority": seniority,
+                "seniority_sort": _to_int(seniority),
+                "region": _clean_mapping_label(record, "REGIÃO_ATIVIDADE"),
+                "battalion": _clean_mapping_label(record, "BATALHÃO"),
+                "lotacao": _clean_mapping_label(record, "LOTAÇÃO"),
+                "raw_city": raw_city,
+                "cities": _mapping_cities(raw_city),
+                "name_upper": _clean_mapping_label(record, "NOME_MAIUSCULO"),
+                "numeral": _clean_mapping_label(record, "NUMERAL"),
+                "post_grad": post_grad,
+                "matricula": _clean_mapping_label(record, "MATRICULA"),
+                "name": _clean_mapping_label(record, "NOME"),
+                "function": function,
+                "role_group": role_group,
+                "post_role": f"{post_grad} · {role_group}",
             }
         )
 
-    scatter_chart = []
-    for battalion, count in battalions.most_common(18):
-        effective = battalion_effective.get(battalion)
-        if effective:
-            scatter_chart.append({"x": effective, "y": count, "label": battalion})
-
-    top_effective = sorted(battalion_effective.items(), key=lambda item: item[1])[0] if battalion_effective else ("-", 0)
-    populations = {}
-    for record in records:
-        city = record.get("CICADE") or record.get("CIDADE") or "Não informado"
-        population = _to_float(record.get("POPULAÇÃO"))
-        if population:
-            populations[city] = population
-
-    ceara_area_km2 = 148894.4
-    mapped_population = sum(populations.values())
-    demographic_density = mapped_population / ceara_area_km2 if mapped_population else 0
-
-    weekday_order = ["domingo", "sábado", "quinta-feira", "sexta-feira", "segunda-feira", "terça-feira", "quarta-feira"]
-    turn_order = ["Noite", "Madrugada", "Tarde", "Manhã"]
-    ais_items = ais_counter.most_common(10)
-    ais_max = max((count for _, count in ais_items), default=1)
-    tree = _crime_tree(records)
+    mapped_rows, unmatched_rows = _mapping_city_rows(records, geojson)
+    total = len(records)
+    mapped_assignments = sum(row["registros"] for row in mapped_rows)
+    municipalities_total = len(geojson.get("features", []))
+    city_rows = sorted(mapped_rows, key=lambda row: (-row["registros"], row["municipio_mapeado"]))
+    region_counts = _mapping_option_counts(records, "region")
+    battalion_counts = _mapping_option_counts(records, "battalion")
+    function_counts = _mapping_option_counts(records, "function")
+    role_group_counts = _mapping_option_counts(records, "role_group")
+    post_grad_counts = _mapping_option_counts(records, "post_grad")
+    post_role_counts = _mapping_option_counts(records, "post_role")
+    top_city = city_rows[0] if city_rows else {"municipio_mapeado": "-", "registros": 0}
+    top_region = region_counts[0] if region_counts else {"label": "-", "count": 0}
+    top_post_grad = post_grad_counts[0] if post_grad_counts else {"label": "-", "count": 0}
+    instructor_total = sum(1 for record in records if record["role_group"] == "Instrutor")
+    monitor_total = sum(1 for record in records if record["role_group"] == "Monitor")
+    coordinator_total = sum(1 for record in records if record["role_group"] == "Coordenador")
+    top_5_total = sum(row["registros"] for row in city_rows[:5])
+    hhi_regional = sum((item["count"] / total) ** 2 for item in region_counts) if total else 0
+    period = "Mapeamento por cidade, região de atividade, função e POST/GRAD"
 
     return {
-        "source": "Análise.xlsx / aba Análise",
-        "period": date_range,
+        "source": f"Análise.xlsx / aba {MAPPING_SHEET_NAME}",
+        "period": period,
+        "geojson": geojson,
+        "records": records,
+        "mapped_rows": city_rows,
+        "unmatched_rows": unmatched_rows,
         "filters": {
-            "date_start": min(dates).strftime("%d/%m/%Y") if dates else "",
-            "date_end": max(dates).strftime("%d/%m/%Y") if dates else "",
-            "cities": _unique_sorted(records, "CICADE"),
-            "ais": _unique_sorted(records, "AIS"),
-            "bpm": _unique_sorted(records, "BATALHÃO"),
-            "neighborhoods": _unique_sorted(records, "BAIRRO"),
-            "crimes": _unique_sorted(records, "CRIME"),
+            "regions": region_counts,
+            "battalions": battalion_counts,
+            "functions": function_counts,
+            "role_groups": role_group_counts,
+            "post_grads": post_grad_counts,
+            "post_roles": post_role_counts,
+            "cities": [
+                {"label": row["municipio_mapeado"], "count": row["registros"]}
+                for row in city_rows
+            ],
         },
-        "executive_kpis": [
-            {"value": _format_number(ceara_area_km2, 1), "label": "Área territorial km²"},
-            {"value": f"{round(total / 1000)} Mil", "label": "Total Ocorrências"},
-            {"value": top_effective[0], "label": f"{_format_number(top_effective[1])} efetivo por batalhão"},
-            {"value": _format_number(demographic_density, 2), "label": "Densidade demográfica"},
-            {"value": f"{total / 1000:.2f} Mil".replace(".", ","), "label": "Taxa CVLI 100 Mil"},
-            {"value": "0,54", "label": "IDH"},
-        ],
+        "summary": {
+            "total_records": total,
+            "mapped_assignments": mapped_assignments,
+            "unmatched_rows": len(unmatched_rows),
+            "municipalities_total": municipalities_total,
+            "municipalities_with_data": len(city_rows),
+            "regions_total": len(region_counts),
+            "battalions_total": len(battalion_counts),
+            "functions_total": len(function_counts),
+            "post_grads_total": len(post_grad_counts),
+            "instructors_total": instructor_total,
+            "monitors_total": monitor_total,
+            "coordinators_total": coordinator_total,
+            "max_records": max((row["registros"] for row in city_rows), default=0),
+        },
         "kpis": [
             {
-                "label": "Ocorrências analisadas",
-                "value": _format_number(total),
-                "trend": date_range,
-                "status": "up",
+                "label": "Região por cidade",
+                "value": _format_number(len(city_rows)),
+                "trend": f"{_format_number(len(region_counts))} região(ões) de atividade",
             },
             {
-                "label": "Principal ocorrência",
-                "value": f"{top_crime_share:.1f}%".replace(".", ","),
-                "trend": f"{top_crime} · {_format_number(top_crime_count)} registros",
-                "status": "warning",
+                "label": "Instrutores",
+                "value": _format_number(instructor_total),
+                "trend": "Filtrado por cidade, região e POST/GRAD",
             },
             {
-                "label": "Cidades mapeadas",
-                "value": _format_number(unique_cities),
-                "trend": "Camadas de municípios e bairros de Fortaleza",
-                "status": "up",
+                "label": "Monitores",
+                "value": _format_number(monitor_total),
+                "trend": f"{_format_number(coordinator_total)} coordenador(es)",
             },
             {
-                "label": "Ocorrências à noite",
-                "value": f"{night_count / total * 100:.1f}%".replace(".", ","),
-                "trend": f"{_format_number(night_count)} registros em noite/madrugada",
-                "status": "warning",
+                "label": "POST/GRAD predominante",
+                "value": top_post_grad["label"],
+                "trend": f"{_format_number(top_post_grad['count'])} registro(s)",
             },
         ],
-        "bar_chart": {
-            "labels": [battalion for battalion, _ in top_battalions],
-            "ocorrencias": [count for _, count in top_battalions],
-            "taxa_efetivo": rates_by_battalion,
-        },
-        "pie_chart": {
-            "labels": [label for label, _ in crimes],
-            "values": [count for _, count in crimes],
-        },
-        "weekday_chart": {
-            "labels": weekday_order,
-            "values": [weekday_counter.get(day, 0) for day in weekday_order],
-        },
-        "turn_chart": {
-            "labels": turn_order,
-            "values": [turns.get(turn, 0) for turn in turn_order],
-        },
-        "ais_chart": [
-            {"label": label, "value": value, "width": round(value / ais_max * 100, 1)}
-            for label, value in ais_items
-        ],
-        "scatter_chart": scatter_chart,
-        "treemap": treemap,
-        "maps": {
-            "ceara": ceara_map_points,
-            "fortaleza": fortaleza_map_points,
-            "legend": list(MAP_CRIME_CATEGORIES.values()),
-        },
-        "bairro_table": _fortaleza_neighborhood_table(records),
-        "crime_tree": tree,
-        "datasets": [
+        "scientific_metrics": [
             {
-                "name": item["city"],
-                "status": item["top_crime"],
-                "rows": _format_number(item["count"]),
-                "quality": f"{item['rate']:.1f}".replace(".", ",") if item["rate"] is not None else "-",
-            }
-            for item in top_cities
+                "label": "Média por município",
+                "value": _format_number(mapped_assignments / len(city_rows), 1) if city_rows else "0",
+                "note": "Registros territorializados por município mapeado",
+            },
+            {
+                "label": "Cobertura territorial",
+                "value": f"{len(city_rows) / municipalities_total * 100:.1f}%".replace(".", ",") if municipalities_total else "0%",
+                "note": f"{len(city_rows)} de {municipalities_total} municípios da malha oficial",
+            },
+            {
+                "label": "Concentração territorial",
+                "value": f"{top_5_total / mapped_assignments * 100:.1f}%".replace(".", ",") if mapped_assignments else "0%",
+                "note": "Participação dos 5 municípios com mais registros",
+            },
+            {
+                "label": "HHI regional",
+                "value": f"{hhi_regional:.3f}".replace(".", ","),
+                "note": "Índice de concentração por REGIÃO_ATIVIDADE",
+            },
         ],
+        "charts": {
+            "regions": region_counts[:12],
+            "battalions": battalion_counts[:12],
+            "functions": function_counts[:12],
+            "role_groups": role_group_counts[:12],
+            "post_grads": post_grad_counts[:12],
+            "post_roles": post_role_counts[:12],
+            "cities": [
+                {"label": row["municipio_mapeado"], "count": row["registros"]}
+                for row in city_rows[:12]
+            ],
+        },
+        "top_region": top_region,
     }
 
 
 @app.route("/")
 def home():
     map_page = get_territorial_data()
-    return render_template("index.html", map_page=map_page)
+    scientific_page = get_dashboard_data()
+    return render_template("index.html", map_page=map_page, scientific_page=scientific_page)
 
 
 @app.route("/dados/ceara-municipios.kml")
@@ -1164,6 +1272,11 @@ def ceara_municipalities_pdf():
 @app.route("/api/dashboard")
 def dashboard_api():
     return jsonify(get_territorial_data())
+
+
+@app.route("/api/analise-cientifica")
+def scientific_analysis_api():
+    return jsonify(get_dashboard_data())
 
 
 if __name__ == "__main__":
