@@ -4676,6 +4676,7 @@
             mappingState.search = normalizeText(event.target.value);
             updateMappingView();
         });
+        
         document.getElementById("clearMappingFilters").addEventListener("click", () => {
             mappingState.filters.regions = [];
             mappingState.filters.battalions = [];
