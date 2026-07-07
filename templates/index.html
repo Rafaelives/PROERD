@@ -92,9 +92,9 @@
 
         .content-grid {
             display: grid;
-            grid-template-columns: 320px minmax(0, 1fr) 420px;
+            grid-template-columns: 300px minmax(0, 1fr) 420px;
             grid-template-areas: "sidebar workspace details";
-            gap: 14px;
+            gap: 10px;
             min-height: 0;
         }
 
@@ -630,7 +630,7 @@
             display: grid;
             grid-template-rows: auto auto;
             align-content: start;
-            gap: 14px;
+            gap: 10px;
             min-width: 0;
         }
 
@@ -786,8 +786,9 @@
         
         .map-shell {
             position: relative;
-            height: clamp(420px, 90vh, 900px);
-            min-height: 420px;
+            order: -1;
+            height: clamp(620px, calc(100vh - 184px), 980px);
+            min-height: 620px;
             overflow: hidden;
         }
 
@@ -910,61 +911,104 @@
 
         .chart-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 12px;
+            grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+            gap: 14px;
             min-width: 0;
+            align-items: stretch;
         }
 
         .charts-section {
+            order: 2;
             min-width: 0;
             overflow: hidden;
-            padding: 14px;
+            padding: 16px;
         }
 
         .chart-card {
+            position: relative;
             min-width: 0;
-            min-height: 246px;
-            border-radius: 8px;
-            background: var(--panel);
-            padding: 12px;
-            box-shadow: var(--shadow-in);
+            min-height: 316px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: 16px;
+            background:
+                linear-gradient(180deg, rgba(247, 251, 252, 0.96), rgba(237, 243, 246, 0.92));
+            padding: 16px;
+            box-shadow: 8px 8px 20px rgba(133, 153, 164, 0.28), -8px -8px 20px rgba(255, 255, 255, 0.82);
+        }
+
+        .chart-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, var(--green), var(--blue), var(--yellow));
+            opacity: 0.9;
         }
 
         .chart-card-wide {
-            min-height: 332px;
+            min-height: 430px;
+        }
+
+        .chart-card .section-title {
+            margin-bottom: 4px;
+            color: var(--ink);
+            font-size: 13px;
+            letter-spacing: 0.02em;
+        }
+
+        .chart-insight {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin: 8px 0 14px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 850;
+            line-height: 1.35;
+        }
+
+        .chart-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 100%;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.68);
+            color: var(--ink);
+            padding: 6px 9px;
+            box-shadow: inset 0 0 0 1px rgba(199, 211, 218, 0.72);
+            white-space: nowrap;
+        }
+
+        .chart-pill strong {
+            color: var(--green);
+            font-size: 12px;
         }
 
         .chart-card canvas {
             width: 100% !important;
-            height: 206px !important;
+            height: 268px !important;
+        }
+
+        .analysis-chart-grid .chart-card {
+            min-height: 360px;
+        }
+
+        .analysis-chart-grid .chart-card canvas {
+            height: 282px !important;
         }
 
         .chart-scroll {
             max-width: 100%;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 0 2px 8px;
-            scrollbar-color: #9db0ba transparent;
-            scrollbar-width: thin;
-        }
-
-        .chart-scroll::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .chart-scroll::-webkit-scrollbar-track {
-            background: #dce6ea;
-            border-radius: 8px;
-        }
-
-        .chart-scroll::-webkit-scrollbar-thumb {
-            background: #9db0ba;
-            border-radius: 8px;
+            overflow: hidden;
+            padding: 0 2px 2px;
         }
 
         .column-canvas-shell {
-            min-width: 720px;
-            height: 282px;
+            width: 100%;
+            min-width: 0;
+            height: 346px;
         }
 
         .column-canvas-shell canvas {
@@ -972,44 +1016,61 @@
         }
 
         .treemap {
-            display: flex;
-            flex-wrap: wrap;
-            align-content: stretch;
+            display: grid;
+            gap: 10px;
+            min-height: 238px;
+            align-content: start;
+        }
+
+        .share-row {
+            display: grid;
             gap: 6px;
-            height: 182px;
-            min-height: 182px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.56);
+            padding: 10px;
+            box-shadow: inset 0 0 0 1px rgba(199, 211, 218, 0.68);
         }
 
-        .tree-tile {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            flex: 1 1 80px;
+        .share-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .share-head strong,
+        .share-head span {
             min-width: 0;
-            min-height: 54px;
-            overflow: hidden;
-            border-radius: 8px;
-            background: var(--green);
-            color: #fff;
-            padding: 8px;
-        }
-
-        .tree-tile strong,
-        .tree-tile span {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .tree-tile strong {
+        .share-head strong {
+            color: var(--ink);
             font-size: 12px;
         }
 
-        .tree-tile span {
-            margin-top: 2px;
+        .share-head span {
+            color: var(--muted);
             font-size: 11px;
-            font-weight: 800;
-            opacity: 0.86;
+            font-weight: 900;
+        }
+
+        .share-track {
+            height: 9px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #dce6ea;
+            box-shadow: var(--shadow-in);
+        }
+
+        .share-track i {
+            display: block;
+            height: 100%;
+            min-width: 3px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--blue));
         }
 
         .rank-panel {
@@ -1090,6 +1151,80 @@
 
         .muted {
             color: var(--muted);
+        }
+
+
+        .narrative-card {
+            border: 1px solid rgba(255, 255, 255, 0.68);
+            border-radius: 14px;
+            background:
+                linear-gradient(180deg, rgba(247, 251, 252, 0.95), rgba(229, 239, 244, 0.92));
+            margin: 0 0 14px;
+            padding: 13px;
+            box-shadow: var(--shadow-in);
+        }
+
+        .narrative-card-title {
+            margin: 0 0 7px;
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+        }
+
+        .narrative-card-text {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .narrative-bullets {
+            display: grid;
+            gap: 7px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .narrative-bullets li {
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.58);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 850;
+            line-height: 1.35;
+            padding: 8px 9px;
+        }
+
+        .narrative-bullets strong {
+            color: var(--green);
+        }
+
+        .metric small,
+        .science-note {
+            line-height: 1.25;
+        }
+
+        .sidebar .section:nth-of-type(n+4) {
+            opacity: 0.94;
+        }
+
+        .map-shell::after {
+            content: "Mapa principal para leitura territorial";
+            position: absolute;
+            left: 14px;
+            bottom: 16px;
+            z-index: 460;
+            max-width: 320px;
+            border-radius: 999px;
+            background: rgba(22, 50, 58, 0.84);
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 900;
+            pointer-events: none;
         }
 
         @media (max-width: 1240px) {
@@ -1200,8 +1335,8 @@
             }
 
             .map-shell {
-                min-height: 360px;
-                height: 58vh;
+                min-height: 460px;
+                height: 66vh;
             }
 
             .chart-grid {
@@ -1332,8 +1467,8 @@
             }
 
             .map-shell {
-                min-height: 320px;
-                height: 56vh;
+                min-height: 390px;
+                height: 62vh;
             }
 
             .analysis-map-shell {
@@ -1466,20 +1601,22 @@
             }
 
             .chart-card {
-                min-height: 260px;
+                min-height: 300px;
+                border-radius: 14px;
+                padding: 12px;
             }
 
             .chart-card-wide {
-                min-height: 306px;
+                min-height: 380px;
             }
 
             .chart-card canvas {
-                height: 220px !important;
+                height: 246px !important;
             }
 
             .column-canvas-shell {
-                min-width: 680px;
-                height: 248px;
+                min-width: 0;
+                height: 316px;
             }
 
             .column-canvas-shell canvas {
@@ -1487,8 +1624,11 @@
             }
 
             .treemap {
-                height: 174px;
-                min-height: 174px;
+                min-height: 220px;
+            }
+
+            .chart-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
 
             .rank-row {
@@ -1508,13 +1648,14 @@
             <div>
                 <p class="hero-kicker">Demonstrativo territorial</p>
                 <h1 class="hero-title">PROERD - GEOLOCALIZAÇÃO</h1>
+                <p class="hero-subtitle">Leitura territorial das escolas, alunos e equipes mapeadas no Ceará.</p>
             </div>
         </header>
 
         <nav class="tab-bar panel" aria-label="Abas do relatório">
-            <button class="tab-button active" data-tab="territorialPanel">Municípios - escolas/PROERD</button>
-            <button class="tab-button" data-tab="mappingPanel">Mapeamento de instruções</button>
-            <button class="tab-button" data-tab="antiquityPanel">Participantes do projeto
+            <button class="tab-button active" data-tab="territorialPanel">Distribuição territorial</button>
+            <button class="tab-button" data-tab="mappingPanel">Instrutores e monitores</button>
+            <button class="tab-button" data-tab="antiquityPanel">Efetivo por antiguidade
             </button>
         </nav>
 
@@ -1526,15 +1667,15 @@
                 <section class="metrics">
                     <div class="metric">
                         <strong id="metricSchools">{{ map_page.summary.schools_total }}</strong>
-                        <span>Escolas</span>
+                        <span>Escolas atendidas</span>
                     </div>
                     <div class="metric">
                         <strong id="metricStudents">{{ map_page.summary.students_total }}</strong>
-                        <span>Alunos</span>
+                        <span>Alunos alcançados</span>
                     </div>
                     <div class="metric">
                         <strong id="metricCities">{{ map_page.summary.municipalities_with_data }}</strong>
-                        <span>Municípios</span>
+                        <span>Municípios com dados</span>
                     </div>
                     <div class="metric">
                         <strong id="metricAverage">0</strong>
@@ -1543,7 +1684,7 @@
                 </section>
 
                 <div class="section">
-                    <p class="section-title">Geolicalização por</p>
+                    <p class="section-title">Mapa por</p>
                     <div class="mode-row">
                         <button class="layer-button active" data-layer="quantidade">Quantidade</button>
                         <button class="layer-button" data-layer="crpm">CRPM</button>
@@ -1553,7 +1694,7 @@
                 </div>
 
                 <div class="section">
-                    <p class="section-title">Divisão por quantidade de escolas</p>
+                    <p class="section-title">Indicador do mapa</p>
                     <div class="mode-row">
                         <button class="mode-button active" data-mode="escolas">Escolas</button>
                         <button class="mode-button" data-mode="alunos">Alunos</button>
@@ -1581,7 +1722,7 @@
                 </div>
 
                 <div class="section">
-                    <p class="section-title">Municípios para cálculo</p>
+                    <p class="section-title">Municípios analisados</p>
                     <div class="chip-list" id="cityFilters"></div>
                 </div>
 
@@ -1593,18 +1734,20 @@
             <main class="workspace">
                 
                 <section class="charts-section panel">
-                    <p class="section-title">Gráficos</p>
+                    <p class="section-title">Leituras do território</p>
                     <div class="chart-grid">
                         <div class="chart-card chart-card-wide">
-                            <p class="section-title">Colunas - Top municípios</p>
-                            <div class="chart-scroll" aria-label="Rolagem horizontal do gráfico de colunas">
+                            <p class="section-title" id="columnChartTitle">Ranking de municípios</p>
+                            <div class="chart-insight" id="columnChartInsight"></div>
+                            <div class="chart-scroll" aria-label="Ranking horizontal dos principais municípios">
                                 <div class="column-canvas-shell" id="columnChartShell">
                                     <canvas id="columnChart"></canvas>
                                 </div>
                             </div>
                         </div>
                         <div class="chart-card">
-                            <p class="section-title">Treemap - Participação de alunos</p>
+                            <p class="section-title">Participação dos alunos no recorte</p>
+                            <div class="chart-insight" id="treemapInsight"></div>
                             <div class="treemap" id="treemapChart"></div>
                         </div>
                     </div>
@@ -1625,16 +1768,17 @@
                 <p class="selected-subtitle" id="selectedSubtitle">Resumo da aba DADOS</p>
 
                 <section class="detail-list" id="detailList"></section>
+                <section class="narrative-card" id="territorialNarrative"></section>
                 <div class="selected-cities" id="selectedCities"></div>
 
                 <section class="section ranking-section">
-                    <p class="section-title">Dashboard de quantidades</p>
+                    <p class="section-title">Leituras rápidas</p>
                     <div class="rank-panel" id="schoolRanking"></div>
                     <div class="rank-panel" id="studentRanking"></div>
                     <div class="rank-panel" id="averageRanking"></div>
                 </section>
 
-                <p class="section-title table-title">Tabela filtrada</p>
+                <p class="section-title table-title">Detalhamento dos registros</p>
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -1652,7 +1796,7 @@
                 </div>
 
                 <div class="section unmatched-section">
-                    <p class="section-title">Não mapeados</p>
+                    <p class="section-title">Pendências de geocodificação</p>
                     <div class="muted" id="unmatchedText"></div>
                 </div>
             </aside>
@@ -1663,24 +1807,24 @@
             <div class="mapping-board">
                 <section class="analysis-kpi-grid mapping-kpi-grid panel">
                     <div class="metric">
-                        <strong id="mappingMetricCityRegions">{{ scientific_page.summary.municipalities_with_data }}</strong>
-                        <span>Região por cidade</span>
-                        <small class="science-note" id="mappingMetricCityRegionsNote">{{ scientific_page.summary.regions_total }} região(ões) de atividade</small>
+                        <strong id="mappingMetricCityRegions">{{ scientific_page.scientific_metrics[1].value }}</strong>
+                        <span>Cobertura territorial</span>
+                        <small class="science-note" id="mappingMetricCityRegionsNote">{{ scientific_page.scientific_metrics[1].note }}</small>
                     </div>
                     <div class="metric">
-                        <strong id="mappingMetricInstructors">{{ scientific_page.summary.instructors_total }}</strong>
-                        <span>Instrutores</span>
-                        <small class="science-note" id="mappingMetricInstructorsNote">Total filtrado por POST/GRAD</small>
+                        <strong id="mappingMetricInstructors">{{ scientific_page.scientific_metrics[0].value }}</strong>
+                        <span>Média por município</span>
+                        <small class="science-note" id="mappingMetricInstructorsNote">Registros por município mapeado</small>
                     </div>
                     <div class="metric">
-                        <strong id="mappingMetricMonitors">{{ scientific_page.summary.monitors_total }}</strong>
-                        <span>Monitores</span>
-                        <small class="science-note" id="mappingMetricMonitorsNote">Total filtrado por POST/GRAD</small>
+                        <strong id="mappingMetricMonitors">{{ scientific_page.scientific_metrics[2].value }}</strong>
+                        <span>Concentração top 5</span>
+                        <small class="science-note" id="mappingMetricMonitorsNote">Participação dos maiores municípios</small>
                     </div>
                     <div class="metric">
-                        <strong id="mappingMetricPostGrad">{{ scientific_page.filters.post_grads[0].label if scientific_page.filters.post_grads else "-" }}</strong>
-                        <span>POST/GRAD predominante</span>
-                        <small class="science-note" id="mappingMetricPostGradNote">{{ scientific_page.filters.post_grads[0].count if scientific_page.filters.post_grads else 0 }} registro(s)</small>
+                        <strong id="mappingMetricPostGrad">{{ scientific_page.scientific_metrics[3].value }}</strong>
+                        <span>HHI regional</span>
+                        <small class="science-note" id="mappingMetricPostGradNote">Índice de concentração por região</small>
                     </div>
                 </section>
 
@@ -1820,7 +1964,7 @@
                         </div>
 
                         <div class="section">
-                            <p class="section-title">Não mapeados</p>
+                            <p class="section-title">Pendências de geocodificação</p>
                             <div class="muted" id="mappingUnmatchedText"></div>
                         </div>
                     </aside>
@@ -2304,9 +2448,11 @@
         }
 
         function chartRows(limit = 10) {
+            const key = state.mode === "alunos" ? "alunos" : "escolas";
+            const secondaryKey = key === "alunos" ? "escolas" : "alunos";
             return filteredRows()
                 .slice()
-                .sort((a, b) => b.alunos - a.alunos || b.escolas - a.escolas)
+                .sort((a, b) => (b[key] || 0) - (a[key] || 0) || (b[secondaryKey] || 0) - (a[secondaryKey] || 0))
                 .slice(0, limit);
         }
 
@@ -2315,13 +2461,13 @@
             return text.length > size ? `${text.slice(0, size - 1)}.` : text;
         }
 
-        function axisLabel(value) {
+        function axisLabel(value, size = 18) {
             const words = String(value || "").split(/\s+/).filter(Boolean);
             const lines = [];
             let current = "";
             words.forEach((word) => {
                 const candidate = current ? `${current} ${word}` : word;
-                if (candidate.length <= 14) {
+                if (candidate.length <= size) {
                     current = candidate;
                 } else {
                     if (current) {
@@ -2333,9 +2479,83 @@
             if (current) {
                 lines.push(current);
             }
-            return lines.slice(0, 3).map((line, index) => (
-                index === 2 && lines.length > 3 ? shortLabel(line, 12) : shortLabel(line, 14)
+            return lines.slice(0, 2).map((line, index) => (
+                index === 1 && lines.length > 2 ? shortLabel(line, Math.max(12, size - 2)) : shortLabel(line, size)
             ));
+        }
+
+        function compactNumber(value) {
+            return new Intl.NumberFormat("pt-BR", {
+                notation: Math.abs(value || 0) >= 10000 ? "compact" : "standard",
+                maximumFractionDigits: 1
+            }).format(value || 0);
+        }
+
+        function percentLabel(value) {
+            return `${(value || 0).toFixed(1).replace(".", ",")}%`;
+        }
+
+        function decimalNumber(value, decimals = 1) {
+            return new Intl.NumberFormat("pt-BR", {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value || 0);
+        }
+
+        function topRowsBy(rows, key, limit = 5) {
+            return [...rows]
+                .sort((a, b) => (b[key] || 0) - (a[key] || 0) || String(a.municipio_mapeado || a.municipio_tabela).localeCompare(String(b.municipio_mapeado || b.municipio_tabela), "pt-BR"))
+                .slice(0, limit);
+        }
+
+        function chartMainValue(row) {
+            return state.mode === "alunos" ? (row.alunos || 0) : (row.escolas || 0);
+        }
+
+        function chartMainLabel() {
+            return state.mode === "alunos" ? "Alunos" : "Escolas";
+        }
+
+        const readableValuePlugin = {
+            id: "readableValuePlugin",
+            afterDatasetsDraw(chart) {
+                const options = chart.options.plugins?.readableValuePlugin || {};
+                if (options.display === false) {
+                    return;
+                }
+                const { ctx, chartArea } = chart;
+                const isHorizontal = chart.options.indexAxis === "y";
+                ctx.save();
+                ctx.font = "800 11px Inter, Segoe UI, sans-serif";
+                ctx.fillStyle = options.color || "#344a55";
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    if (meta.hidden) {
+                        return;
+                    }
+                    meta.data.forEach((element, index) => {
+                        const raw = dataset.data[index] || 0;
+                        const label = options.formatter ? options.formatter(raw, dataset, index) : compactNumber(raw);
+                        if (isHorizontal) {
+                            const x = Math.min(element.x + 8, chartArea.right - 4);
+                            ctx.textAlign = x > chartArea.right - 40 ? "right" : "left";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(label, x, element.y);
+                        } else {
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "bottom";
+                            ctx.fillText(label, element.x, Math.max(chartArea.top + 10, element.y - 7));
+                        }
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
+        if (window.Chart) {
+            Chart.defaults.font.family = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+            Chart.defaults.color = "#52636c";
+            Chart.defaults.borderColor = "rgba(22, 50, 58, 0.09)";
         }
 
         function renderColumnChart(rows) {
@@ -2344,35 +2564,92 @@
             }
             const ctx = document.getElementById("columnChart");
             const shell = document.getElementById("columnChartShell");
-            if (shell) {
-                shell.style.width = `${Math.max(720, rows.length * 132)}px`;
-            }
+            const title = document.getElementById("columnChartTitle");
+            const insight = document.getElementById("columnChartInsight");
+            const metricLabel = chartMainLabel();
             const labels = rows.map((row) => row.municipio_mapeado || row.municipio_tabela);
+            const values = rows.map(chartMainValue);
+            const totalVisible = values.reduce((sum, value) => sum + value, 0);
+            const leader = rows[0];
+
+            if (shell) {
+                shell.style.width = "100%";
+                shell.style.minWidth = "0";
+                shell.style.height = `${Math.max(326, rows.length * 34 + 92)}px`;
+            }
+            if (title) {
+                title.textContent = `Top municípios por ${metricLabel.toLowerCase()}`;
+            }
+            if (insight) {
+                const leaderName = leader ? (leader.municipio_mapeado || leader.municipio_tabela) : "Sem dados";
+                const leaderValue = leader ? chartMainValue(leader) : 0;
+                insight.innerHTML = rows.length ? `
+                    <span class="chart-pill">Destaque <strong>${escapeHtml(leaderName)}</strong></span>
+                    <span class="chart-pill">${metricLabel} no top ${rows.length}: <strong>${formatNumber(totalVisible)}</strong></span>
+                    <span class="chart-pill">Maior valor: <strong>${formatNumber(leaderValue)}</strong></span>
+                ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
+            }
+
             const data = {
-                labels: labels.map(axisLabel),
+                labels: labels.map((label) => axisLabel(label, 19)),
                 datasets: [
                     {
-                        label: "Escolas",
-                        data: rows.map((row) => row.escolas),
-                        backgroundColor: "#087f7a",
-                        borderRadius: 6,
-                        categoryPercentage: 0.72,
-                        barPercentage: 0.82,
-                        yAxisID: "schools"
-                    },
-                    {
-                        label: "Alunos",
-                        data: rows.map((row) => row.alunos),
-                        backgroundColor: "#e7aa25",
-                        borderRadius: 6,
-                        categoryPercentage: 0.72,
-                        barPercentage: 0.82,
-                        yAxisID: "students"
+                        label: metricLabel,
+                        data: values,
+                        backgroundColor: rows.map((_, index) => index === 0 ? "#087f7a" : index < 3 ? "#256fba" : "#8ba3ad"),
+                        borderRadius: 999,
+                        borderSkipped: false,
+                        categoryPercentage: 0.78,
+                        barPercentage: 0.74
                     }
                 ]
             };
+            const options = {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 420, easing: "easeOutQuart" },
+                interaction: { mode: "nearest", axis: "y", intersect: false },
+                layout: { padding: { right: 54, left: 6, top: 4, bottom: 2 } },
+                plugins: {
+                    legend: { display: false },
+                    readableValuePlugin: { formatter: (value) => compactNumber(value) },
+                    tooltip: {
+                        backgroundColor: "rgba(22, 50, 58, 0.94)",
+                        titleMarginBottom: 8,
+                        padding: 12,
+                        callbacks: {
+                            title(items) {
+                                return labels[items[0].dataIndex];
+                            },
+                            label(context) {
+                                const row = rows[context.dataIndex];
+                                return [
+                                    `${metricLabel}: ${formatNumber(context.raw)}`,
+                                    `Escolas: ${formatNumber(row?.escolas)}`,
+                                    `Alunos: ${formatNumber(row?.alunos)}`,
+                                    `Alunos/escola: ${formatNumber(average(row || {}))}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: metricLabel, color: "#64717d", font: { weight: "900" } },
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { callback: (value) => compactNumber(value), maxTicksLimit: 5 }
+                    },
+                    y: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { autoSkip: false, font: { size: 11, weight: "800" }, color: "#344a55", padding: 8 }
+                    }
+                }
+            };
             if (charts.column) {
                 charts.column.data = data;
+                charts.column.options = options;
                 charts.column.resize();
                 charts.column.update();
                 return;
@@ -2380,80 +2657,82 @@
             charts.column = new Chart(ctx, {
                 type: "bar",
                 data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: "index", intersect: false },
-                    plugins: {
-                        legend: {
-                            position: "top",
-                            labels: {
-                                boxWidth: 10,
-                                boxHeight: 10,
-                                padding: 10,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title(items) {
-                                    return labels[items[0].dataIndex];
-                                },
-                                label(context) {
-                                    return `${context.dataset.label}: ${formatNumber(context.raw)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            offset: true,
-                            ticks: {
-                                maxRotation: 0,
-                                autoSkip: false,
-                                font: { size: 11, weight: "700" },
-                                padding: 8
-                            }
-                        },
-                        students: {
-                            beginAtZero: true,
-                            position: "left",
-                            title: { display: true, text: "Alunos" },
-                            ticks: { callback: (value) => formatNumber(value) }
-                        },
-                        schools: {
-                            beginAtZero: true,
-                            position: "right",
-                            title: { display: true, text: "Escolas" },
-                            grid: { drawOnChartArea: false },
-                            ticks: { precision: 0 }
-                        }
-                    }
-                }
+                options,
+                plugins: [readableValuePlugin]
             });
         }
 
         function renderTreemap(rows) {
             const container = document.getElementById("treemapChart");
+            const insight = document.getElementById("treemapInsight");
             const total = Math.max(sumRows(rows, "alunos"), 1);
-            const colors = ["#087f7a", "#256fba", "#e7aa25", "#c54b3c", "#6a7d86", "#16323a"];
-            container.innerHTML = rows.slice(0, 12).map((row, index) => {
-                const ratio = row.alunos / total;
-                const width = Math.max(18, ratio * 100);
-                const grow = Math.max(1, Math.round(ratio * 100));
+            const items = rows.slice(0, 8);
+            const leader = items[0];
+            if (insight) {
+                insight.innerHTML = leader ? `
+                    <span class="chart-pill">Total exibido <strong>${formatNumber(sumRows(items, "alunos"))}</strong></span>
+                    <span class="chart-pill">Maior participação <strong>${percentLabel((leader.alunos || 0) / total * 100)}</strong></span>
+                ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
+            }
+            container.innerHTML = items.map((row) => {
+                const label = row.municipio_mapeado || row.municipio_tabela;
+                const percent = (row.alunos || 0) / total * 100;
                 return `
-                    <div class="tree-tile" style="flex-grow:${grow}; flex-basis:calc(${width}% - 6px); background:${colors[index % colors.length]}">
-                        <strong title="${row.municipio_mapeado || row.municipio_tabela}">${row.municipio_mapeado || row.municipio_tabela}</strong>
-                        <span>${formatNumber(row.alunos)} alunos</span>
+                    <div class="share-row">
+                        <div class="share-head">
+                            <strong title="${escapeHtml(label)}">${escapeHtml(label)}</strong>
+                            <span>${formatNumber(row.alunos)} · ${percentLabel(percent)}</span>
+                        </div>
+                        <div class="share-track" aria-label="${escapeHtml(label)}: ${percentLabel(percent)} dos alunos exibidos">
+                            <i style="width:${Math.min(100, Math.max(3, percent))}%"></i>
+                        </div>
                     </div>
                 `;
             }).join("") || '<span class="muted">Sem dados para exibir</span>';
         }
 
         function renderCharts() {
-            const rows = chartRows(12);
+            const rows = chartRows(10);
             renderColumnChart(rows);
             renderTreemap(rows);
+        }
+
+
+        function renderTerritorialNarrative() {
+            const container = document.getElementById("territorialNarrative");
+            if (!container) {
+                return;
+            }
+            const rows = filteredRows();
+            const schools = sumRows(rows, "escolas");
+            const students = sumRows(rows, "alunos");
+            const municipalitiesTotal = pageData.summary.municipalities_total || rows.length || 1;
+            const coverage = rows.length / municipalitiesTotal * 100;
+            const topStudent = topRowsBy(rows, "alunos", 1)[0];
+            const topSchool = topRowsBy(rows, "escolas", 1)[0];
+            const top5Students = sumRows(topRowsBy(rows, "alunos", 5), "alunos");
+            const avg = schools ? students / schools : 0;
+
+            if (!rows.length) {
+                container.innerHTML = `
+                    <p class="narrative-card-title">Leitura expositiva</p>
+                    <p class="narrative-card-text">Nenhum município atende aos filtros atuais. Reduza os filtros para recuperar a leitura territorial.</p>
+                `;
+                return;
+            }
+
+            const topStudentName = topStudent ? (topStudent.municipio_mapeado || topStudent.municipio_tabela) : "-";
+            const topSchoolName = topSchool ? (topSchool.municipio_mapeado || topSchool.municipio_tabela) : "-";
+            container.innerHTML = `
+                <p class="narrative-card-title">Leitura expositiva</p>
+                <p class="narrative-card-text">Este recorte mostra a presença do PROERD em ${formatNumber(rows.length)} município(s), com ${formatNumber(schools)} escola(s) e ${formatNumber(students)} aluno(s).</p>
+                <ul class="narrative-bullets">
+                    <li><strong>${percentLabel(coverage)}</strong> da malha municipal aparece no recorte atual.</li>
+                    <li><strong>${escapeHtml(topStudentName)}</strong> concentra o maior número de alunos: ${formatNumber(topStudent?.alunos || 0)}.</li>
+                    <li><strong>${escapeHtml(topSchoolName)}</strong> lidera em escolas: ${formatNumber(topSchool?.escolas || 0)}.</li>
+                    <li>A média do recorte é de <strong>${decimalNumber(avg, 1)}</strong> aluno(s) por escola; os 5 maiores municípios somam <strong>${percentLabel(students ? top5Students / students * 100 : 0)}</strong> dos alunos.</li>
+                </ul>
+            `;
         }
 
         function setDetails() {
@@ -2824,23 +3103,30 @@
 
         function updateMappingCards(records, rows) {
             const regions = countMapping(records, "region");
-            const instructors = roleCount(records, "Instrutor");
-            const monitors = roleCount(records, "Monitor");
-            const topPostGrad = topCount(records, "post_grad");
-            const topInstructorPost = topPostGradForRole(records, "Instrutor");
-            const topMonitorPost = topPostGradForRole(records, "Monitor");
+            const mappedAssignments = rows.reduce((total, row) => total + (row.registros || 0), 0);
+            const municipalitiesTotal = scientificData.summary.municipalities_total || rows.length || 1;
+            const coverage = rows.length / municipalitiesTotal * 100;
+            const averagePerCity = rows.length ? mappedAssignments / rows.length : 0;
+            const top5Total = rows.slice(0, 5).reduce((total, row) => total + (row.registros || 0), 0);
+            const concentration = mappedAssignments ? top5Total / mappedAssignments * 100 : 0;
+            const hhi = records.length
+                ? regions.reduce((total, item) => total + Math.pow((item.count || 0) / records.length, 2), 0)
+                : 0;
+            const topRegion = regions[0];
 
-            document.getElementById("mappingMetricCityRegions").textContent = formatNumber(rows.length);
+            document.getElementById("mappingMetricCityRegions").textContent = percentLabel(coverage);
             document.getElementById("mappingMetricCityRegionsNote").textContent =
-                `${formatNumber(regions.length)} região(ões) de atividade no filtro`;
-            document.getElementById("mappingMetricInstructors").textContent = formatNumber(instructors);
+                `${formatNumber(rows.length)} de ${formatNumber(municipalitiesTotal)} município(s) com registro`;
+            document.getElementById("mappingMetricInstructors").textContent = decimalNumber(averagePerCity, 1);
             document.getElementById("mappingMetricInstructorsNote").textContent =
-                topInstructorPost.count ? `${topInstructorPost.label} · ${formatNumber(topInstructorPost.count)}` : "Sem instrutor no filtro";
-            document.getElementById("mappingMetricMonitors").textContent = formatNumber(monitors);
+                `${formatNumber(mappedAssignments)} registro(s) territorializados no filtro`;
+            document.getElementById("mappingMetricMonitors").textContent = percentLabel(concentration);
             document.getElementById("mappingMetricMonitorsNote").textContent =
-                topMonitorPost.count ? `${topMonitorPost.label} · ${formatNumber(topMonitorPost.count)}` : "Sem monitor no filtro";
-            document.getElementById("mappingMetricPostGrad").textContent = topPostGrad.label;
-            document.getElementById("mappingMetricPostGradNote").textContent = `${formatNumber(topPostGrad.count)} registro(s)`;
+                `Top 5 municípios: ${formatNumber(top5Total)} registro(s)`;
+            document.getElementById("mappingMetricPostGrad").textContent = decimalNumber(hhi, 3);
+            document.getElementById("mappingMetricPostGradNote").textContent = topRegion
+                ? `Região predominante: ${topRegion.label} · ${formatNumber(topRegion.count)}`
+                : "Sem região no filtro";
         }
 
         function renderMappingTable(records) {
@@ -3137,57 +3423,70 @@
             if (!window.Chart) {
                 return;
             }
-            const labels = items.slice(0, 10).map((item) => item.label);
+            const visibleItems = items.slice(0, 8);
+            const labels = visibleItems.map((item) => item.label);
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                canvas.style.height = `${Math.max(254, visibleItems.length * 31 + 72)}px`;
+            }
             const data = {
-                labels: labels.map((label) => axisLabel(label)),
+                labels: labels.map((label) => axisLabel(label, 17)),
                 datasets: [{
                     label: "Registros",
-                    data: items.slice(0, 10).map((item) => item.count),
-                    backgroundColor: color,
-                    borderRadius: 6,
-                    categoryPercentage: 0.72,
-                    barPercentage: 0.82
+                    data: visibleItems.map((item) => item.count),
+                    backgroundColor: visibleItems.map((_, index) => index === 0 ? color : "#8ba3ad"),
+                    borderRadius: 999,
+                    borderSkipped: false,
+                    categoryPercentage: 0.78,
+                    barPercentage: 0.74
                 }]
+            };
+            const options = {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 420, easing: "easeOutQuart" },
+                layout: { padding: { right: 42, left: 4, top: 2, bottom: 0 } },
+                plugins: {
+                    legend: { display: false },
+                    readableValuePlugin: { formatter: (value) => formatNumber(value) },
+                    tooltip: {
+                        backgroundColor: "rgba(22, 50, 58, 0.94)",
+                        padding: 12,
+                        callbacks: {
+                            title(items) {
+                                return labels[items[0].dataIndex];
+                            },
+                            label(context) {
+                                return `Registros: ${formatNumber(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { precision: 0, maxTicksLimit: 4 }
+                    },
+                    y: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { autoSkip: false, font: { size: 10, weight: "800" }, color: "#344a55", padding: 7 }
+                    }
+                }
             };
             if (charts[chartKey]) {
                 charts[chartKey].data = data;
+                charts[chartKey].options = options;
                 charts[chartKey].resize();
                 charts[chartKey].update();
                 return;
             }
-            charts[chartKey] = new Chart(document.getElementById(canvasId), {
+            charts[chartKey] = new Chart(canvas, {
                 type: "bar",
                 data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title(items) {
-                                    return labels[items[0].dataIndex];
-                                },
-                                label(context) {
-                                    return `Registros: ${formatNumber(context.raw)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 0,
-                                autoSkip: false,
-                                font: { size: 10, weight: "700" }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        }
-                    }
-                }
+                options,
+                plugins: [readableValuePlugin]
             });
         }
 
@@ -3289,6 +3588,7 @@
             updateModeButtons();
             updateLayerButtons();
             updateMetrics();
+            renderTerritorialNarrative();
             renderDashboards();
             renderCharts();
             renderLegend();
