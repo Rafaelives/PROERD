@@ -996,11 +996,12 @@
         }
 
         .analysis-chart-grid .chart-card {
-            min-height: 360px;
+            min-height: 480px;
         }
 
         .analysis-chart-grid .chart-card-wide {
             grid-column: 1 / -1;
+            min-height: 560px;
         }
 
         .analysis-chart-grid .chart-card canvas {
@@ -1064,6 +1065,69 @@
             min-width: 3px;
             border-radius: inherit;
             background: linear-gradient(90deg, var(--green), var(--blue));
+        }
+
+        .coverage-scatter-plot {
+            position: relative;
+            height: 188px;
+            margin: 10px 0 12px;
+            border: 1px solid rgba(199, 211, 218, 0.8);
+            border-radius: 14px;
+            background:
+                linear-gradient(rgba(22, 50, 58, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(22, 50, 58, 0.08) 1px, transparent 1px),
+                rgba(255, 255, 255, 0.58);
+            background-size: 48px 48px;
+            overflow: hidden;
+        }
+
+        .scatter-point {
+            position: absolute;
+            display: grid;
+            place-items: center;
+            min-width: 28px;
+            min-height: 28px;
+            border: 2px solid var(--ink);
+            border-radius: 999px;
+            background: rgba(8, 127, 122, 0.72);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 950;
+            transform: translate(-50%, 50%);
+            box-shadow: 0 12px 28px rgba(9, 47, 58, 0.2);
+        }
+
+        .scatter-point.muted-point {
+            background: rgba(139, 163, 173, 0.42);
+            color: var(--ink);
+        }
+
+        .scatter-label {
+            position: absolute;
+            max-width: 156px;
+            color: var(--ink);
+            font-size: 10px;
+            font-weight: 900;
+            line-height: 1.25;
+            transform: translate(-50%, -100%);
+            text-align: center;
+        }
+
+        .scatter-axis {
+            position: absolute;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .scatter-axis.x-axis {
+            right: 10px;
+            bottom: 8px;
+        }
+
+        .scatter-axis.y-axis {
+            left: 10px;
+            top: 8px;
         }
 
         .map-fallback {
@@ -2923,22 +2987,27 @@
                             <div class="chart-card chart-card-wide">
                                 <p class="section-title">Dispersão: nomes x municípios</p>
                                 <div class="chart-insight" id="mappingCoverageInsight"></div>
+                                <div class="chart-fallback" id="mappingCoverageScatterData"></div>
                                 <canvas id="mappingCoverageScatter"></canvas>
                             </div>
                             <div class="chart-card">
                                 <p class="section-title">Cidade</p>
+                                <div class="chart-fallback" id="mappingRegionChartData"></div>
                                 <canvas id="mappingRegionChart"></canvas>
                             </div>
                             <div class="chart-card">
                                 <p class="section-title">POST/GRAD + função</p>
+                                <div class="chart-fallback" id="mappingFunctionChartData"></div>
                                 <canvas id="mappingFunctionChart"></canvas>
                             </div>
                             <div class="chart-card">
                                 <p class="section-title">Batalhão</p>
+                                <div class="chart-fallback" id="mappingBattalionChartData"></div>
                                 <canvas id="mappingBattalionChart"></canvas>
                             </div>
                             <div class="chart-card">
                                 <p class="section-title">POST/GRAD</p>
+                                <div class="chart-fallback" id="mappingPostChartData"></div>
                                 <canvas id="mappingPostChart"></canvas>
                             </div>
                         </div>
@@ -3562,6 +3631,29 @@
             `).join("") || '<span class="muted">Sem dados para exibir</span>';
             fallback.hidden = false;
             canvas.hidden = true;
+        }
+
+        function renderDataList(containerId, items, valueFormatter = formatNumber) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                return;
+            }
+            const rows = items.slice(0, 8);
+            const max = Math.max(...rows.map((item) => item.value || 0), 1);
+            container.innerHTML = rows.map((item) => {
+                const valueText = item.valueLabel || valueFormatter(item.value || 0);
+                return `
+                    <div class="fallback-row">
+                        <div class="fallback-head">
+                            <strong title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</strong>
+                            <span>${escapeHtml(valueText)}</span>
+                        </div>
+                        <div class="fallback-track" aria-label="${escapeHtml(item.label)}: ${escapeHtml(valueText)}">
+                            <i style="width:${Math.max(3, (item.value || 0) / max * 100)}%"></i>
+                        </div>
+                    </div>
+                `;
+            }).join("") || '<span class="muted">Sem dados para exibir</span>';
         }
 
         function hideChartFallback(canvas) {
@@ -4702,9 +4794,35 @@
             const remainingMunicipalities = Math.max(municipalitiesTotal - mappedMunicipalities, 0);
             const coverage = municipalitiesTotal ? mappedMunicipalities / municipalitiesTotal * 100 : 0;
             const fallbackItems = [
-                { label: `${mappedMunicipalities} município(s) com nomes`, value: totalNames },
-                { label: `${remainingMunicipalities} município(s) restantes do Ceará`, value: 0 }
+                {
+                    label: "Municípios com nomes",
+                    value: mappedMunicipalities,
+                    valueLabel: `${formatNumber(mappedMunicipalities)} municípios / ${formatNumber(totalNames)} nomes`
+                },
+                {
+                    label: "Demais municípios do Ceará",
+                    value: remainingMunicipalities,
+                    valueLabel: `${formatNumber(remainingMunicipalities)} municípios / 0 nomes`
+                }
             ];
+            const scatterContainer = document.getElementById("mappingCoverageScatterData");
+            if (scatterContainer) {
+                const mappedX = municipalitiesTotal ? Math.max(8, Math.min(92, mappedMunicipalities / municipalitiesTotal * 100)) : 8;
+                const mappedY = totalNames ? 84 : 8;
+                const remainingX = municipalitiesTotal ? Math.max(8, Math.min(92, remainingMunicipalities / municipalitiesTotal * 100)) : 92;
+                const remainingY = 8;
+                renderDataList("mappingCoverageScatterData", fallbackItems);
+                scatterContainer.insertAdjacentHTML("afterbegin", `
+                    <div class="coverage-scatter-plot" aria-label="Dispersão de nomes por municípios">
+                        <span class="scatter-axis y-axis">Nomes</span>
+                        <span class="scatter-axis x-axis">Municípios</span>
+                        <span class="scatter-label" style="left:${mappedX}%; bottom:${Math.min(92, mappedY + 6)}%;">${formatNumber(totalNames)} nomes<br>${formatNumber(mappedMunicipalities)} municípios</span>
+                        <span class="scatter-point" style="left:${mappedX}%; bottom:${mappedY}%; width:${Math.max(28, Math.min(58, totalNames / 1.4))}px; height:${Math.max(28, Math.min(58, totalNames / 1.4))}px;">${formatNumber(totalNames)}</span>
+                        <span class="scatter-label" style="left:${remainingX}%; bottom:${Math.min(92, remainingY + 10)}%;">${formatNumber(remainingMunicipalities)} municípios<br>sem nomes</span>
+                        <span class="scatter-point muted-point" style="left:${remainingX}%; bottom:${remainingY}%; width:${Math.max(24, Math.min(46, remainingMunicipalities / 5))}px; height:${Math.max(24, Math.min(46, remainingMunicipalities / 5))}px;">0</span>
+                    </div>
+                `);
+            }
 
             if (insight) {
                 insight.innerHTML = `
@@ -4714,6 +4832,9 @@
                 `;
             }
 
+            if (!isPanelVisible("mappingPanel")) {
+                return;
+            }
             if (!window.Chart || !canvas) {
                 showChartFallback(canvas, fallbackItems);
                 return;
@@ -4812,6 +4933,10 @@
                 label: item.label,
                 value: item.count
             }));
+            renderDataList(`${canvasId}Data`, fallbackItems);
+            if (!isPanelVisible("mappingPanel")) {
+                return;
+            }
             if (!window.Chart || !canvas) {
                 showChartFallback(canvas, fallbackItems);
                 return;
@@ -4956,9 +5081,7 @@
             renderMappingFilters();
             updateMappingLayerButtons();
             renderMappingLegend();
-            if (isPanelVisible("mappingPanel")) {
-                renderMappingCharts(records, rows);
-            }
+            renderMappingCharts(records, rows);
             updateMappingDetails(records, rows);
             updateMappingMap();
             document.getElementById("mappingActiveFilter").textContent = hasMappingFilters()
