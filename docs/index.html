@@ -92,9 +92,9 @@
 
         .content-grid {
             display: grid;
-            grid-template-columns: 320px minmax(0, 1fr) 420px;
+            grid-template-columns: 300px minmax(0, 1fr) 420px;
             grid-template-areas: "sidebar workspace details";
-            gap: 14px;
+            gap: 10px;
             min-height: 0;
         }
 
@@ -630,7 +630,7 @@
             display: grid;
             grid-template-rows: auto auto;
             align-content: start;
-            gap: 14px;
+            gap: 10px;
             min-width: 0;
         }
 
@@ -783,11 +783,12 @@
             width: 100%;
             margin-top: 10px;
         }
-        
+
         .map-shell {
             position: relative;
-            height: clamp(420px, 90vh, 900px);
-            min-height: 420px;
+            order: -1;
+            height: clamp(620px, calc(100vh - 184px), 980px);
+            min-height: 620px;
             overflow: hidden;
         }
 
@@ -910,61 +911,104 @@
 
         .chart-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 12px;
+            grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+            gap: 14px;
             min-width: 0;
+            align-items: stretch;
         }
 
         .charts-section {
+            order: 2;
             min-width: 0;
             overflow: hidden;
-            padding: 14px;
+            padding: 16px;
         }
 
         .chart-card {
+            position: relative;
             min-width: 0;
-            min-height: 246px;
-            border-radius: 8px;
-            background: var(--panel);
-            padding: 12px;
-            box-shadow: var(--shadow-in);
+            min-height: 316px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: 16px;
+            background:
+                linear-gradient(180deg, rgba(247, 251, 252, 0.96), rgba(237, 243, 246, 0.92));
+            padding: 16px;
+            box-shadow: 8px 8px 20px rgba(133, 153, 164, 0.28), -8px -8px 20px rgba(255, 255, 255, 0.82);
+        }
+
+        .chart-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, var(--green), var(--blue), var(--yellow));
+            opacity: 0.9;
         }
 
         .chart-card-wide {
-            min-height: 332px;
+            min-height: 430px;
+        }
+
+        .chart-card .section-title {
+            margin-bottom: 4px;
+            color: var(--ink);
+            font-size: 13px;
+            letter-spacing: 0.02em;
+        }
+
+        .chart-insight {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin: 8px 0 14px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 850;
+            line-height: 1.35;
+        }
+
+        .chart-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 100%;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.68);
+            color: var(--ink);
+            padding: 6px 9px;
+            box-shadow: inset 0 0 0 1px rgba(199, 211, 218, 0.72);
+            white-space: nowrap;
+        }
+
+        .chart-pill strong {
+            color: var(--green);
+            font-size: 12px;
         }
 
         .chart-card canvas {
             width: 100% !important;
-            height: 206px !important;
+            height: 268px !important;
+        }
+
+        .analysis-chart-grid .chart-card {
+            min-height: 360px;
+        }
+
+        .analysis-chart-grid .chart-card canvas {
+            height: 282px !important;
         }
 
         .chart-scroll {
             max-width: 100%;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 0 2px 8px;
-            scrollbar-color: #9db0ba transparent;
-            scrollbar-width: thin;
-        }
-
-        .chart-scroll::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .chart-scroll::-webkit-scrollbar-track {
-            background: #dce6ea;
-            border-radius: 8px;
-        }
-
-        .chart-scroll::-webkit-scrollbar-thumb {
-            background: #9db0ba;
-            border-radius: 8px;
+            overflow: hidden;
+            padding: 0 2px 2px;
         }
 
         .column-canvas-shell {
-            min-width: 720px;
-            height: 282px;
+            width: 100%;
+            min-width: 0;
+            height: 346px;
         }
 
         .column-canvas-shell canvas {
@@ -972,44 +1016,61 @@
         }
 
         .treemap {
-            display: flex;
-            flex-wrap: wrap;
-            align-content: stretch;
+            display: grid;
+            gap: 10px;
+            min-height: 238px;
+            align-content: start;
+        }
+
+        .share-row {
+            display: grid;
             gap: 6px;
-            height: 182px;
-            min-height: 182px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.56);
+            padding: 10px;
+            box-shadow: inset 0 0 0 1px rgba(199, 211, 218, 0.68);
         }
 
-        .tree-tile {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            flex: 1 1 80px;
+        .share-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .share-head strong,
+        .share-head span {
             min-width: 0;
-            min-height: 54px;
-            overflow: hidden;
-            border-radius: 8px;
-            background: var(--green);
-            color: #fff;
-            padding: 8px;
-        }
-
-        .tree-tile strong,
-        .tree-tile span {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .tree-tile strong {
+        .share-head strong {
+            color: var(--ink);
             font-size: 12px;
         }
 
-        .tree-tile span {
-            margin-top: 2px;
+        .share-head span {
+            color: var(--muted);
             font-size: 11px;
-            font-weight: 800;
-            opacity: 0.86;
+            font-weight: 900;
+        }
+
+        .share-track {
+            height: 9px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #dce6ea;
+            box-shadow: var(--shadow-in);
+        }
+
+        .share-track i {
+            display: block;
+            height: 100%;
+            min-width: 3px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--blue));
         }
 
         .rank-panel {
@@ -1090,6 +1151,80 @@
 
         .muted {
             color: var(--muted);
+        }
+
+
+        .narrative-card {
+            border: 1px solid rgba(255, 255, 255, 0.68);
+            border-radius: 14px;
+            background:
+                linear-gradient(180deg, rgba(247, 251, 252, 0.95), rgba(229, 239, 244, 0.92));
+            margin: 0 0 14px;
+            padding: 13px;
+            box-shadow: var(--shadow-in);
+        }
+
+        .narrative-card-title {
+            margin: 0 0 7px;
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+        }
+
+        .narrative-card-text {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .narrative-bullets {
+            display: grid;
+            gap: 7px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .narrative-bullets li {
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.58);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 850;
+            line-height: 1.35;
+            padding: 8px 9px;
+        }
+
+        .narrative-bullets strong {
+            color: var(--green);
+        }
+
+        .metric small,
+        .science-note {
+            line-height: 1.25;
+        }
+
+        .sidebar .section:nth-of-type(n+4) {
+            opacity: 0.94;
+        }
+
+        .map-shell::after {
+            content: "Mapa principal para leitura territorial";
+            position: absolute;
+            left: 14px;
+            bottom: 16px;
+            z-index: 460;
+            max-width: 320px;
+            border-radius: 999px;
+            background: rgba(22, 50, 58, 0.84);
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 900;
+            pointer-events: none;
         }
 
         @media (max-width: 1240px) {
@@ -1200,8 +1335,8 @@
             }
 
             .map-shell {
-                min-height: 360px;
-                height: 58vh;
+                min-height: 460px;
+                height: 66vh;
             }
 
             .chart-grid {
@@ -1332,8 +1467,8 @@
             }
 
             .map-shell {
-                min-height: 320px;
-                height: 56vh;
+                min-height: 390px;
+                height: 62vh;
             }
 
             .analysis-map-shell {
@@ -1466,20 +1601,22 @@
             }
 
             .chart-card {
-                min-height: 260px;
+                min-height: 300px;
+                border-radius: 14px;
+                padding: 12px;
             }
 
             .chart-card-wide {
-                min-height: 306px;
+                min-height: 380px;
             }
 
             .chart-card canvas {
-                height: 220px !important;
+                height: 246px !important;
             }
 
             .column-canvas-shell {
-                min-width: 680px;
-                height: 248px;
+                min-width: 0;
+                height: 316px;
             }
 
             .column-canvas-shell canvas {
@@ -1487,8 +1624,11 @@
             }
 
             .treemap {
-                height: 174px;
-                min-height: 174px;
+                min-height: 220px;
+            }
+
+            .chart-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
 
             .rank-row {
@@ -1500,6 +1640,927 @@
                 padding: 7px 6px;
             }
         }
+
+
+        /* =====================================================================
+           VISUAL OVERHAUL — aplicado sem alterar funções, IDs ou JavaScript
+           ===================================================================== */
+        :root {
+            --bg: #f4f7fb;
+            --panel: rgba(255, 255, 255, 0.82);
+            --panel-strong: rgba(255, 255, 255, 0.96);
+            --line: rgba(20, 65, 76, 0.12);
+            --text: #14232d;
+            --muted: #60727f;
+            --green: #007f76;
+            --blue: #246bfe;
+            --yellow: #f2b632;
+            --red: #df5a49;
+            --ink: #092f3a;
+            --empty: #dbe5eb;
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --shadow-out: 0 22px 60px rgba(15, 43, 55, 0.13), 0 6px 18px rgba(15, 43, 55, 0.08);
+            --shadow-in: inset 0 1px 0 rgba(255, 255, 255, 0.78), inset 0 -1px 0 rgba(15, 43, 55, 0.05);
+            --ring: 0 0 0 4px rgba(36, 107, 254, 0.15);
+            --gradient-main: linear-gradient(135deg, #006d67 0%, #0b5ab8 52%, #132e4c 100%);
+            --gradient-accent: linear-gradient(135deg, #00a99b 0%, #246bfe 58%, #f2b632 130%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 7% 4%, rgba(0, 127, 118, 0.18), transparent 32rem),
+                radial-gradient(circle at 92% 10%, rgba(36, 107, 254, 0.16), transparent 34rem),
+                radial-gradient(circle at 52% 100%, rgba(242, 182, 50, 0.16), transparent 30rem),
+                linear-gradient(180deg, #f7fafc 0%, #edf3f8 44%, #f8fafc 100%);
+            letter-spacing: -0.01em;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(9, 47, 58, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(9, 47, 58, 0.035) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 72%);
+        }
+
+        .app {
+            width: min(100%, 1920px);
+            margin: 0 auto;
+            gap: 18px;
+            padding: clamp(12px, 1.8vw, 24px);
+        }
+
+        .hero-band {
+            position: relative;
+            isolation: isolate;
+            min-height: 164px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.46);
+            border-radius: var(--radius-xl);
+            background:
+                radial-gradient(circle at 90% 18%, rgba(242, 182, 50, 0.55), transparent 24rem),
+                radial-gradient(circle at 16% 96%, rgba(0, 169, 155, 0.35), transparent 28rem),
+                var(--gradient-main);
+            padding: clamp(24px, 3vw, 46px);
+            text-align: left;
+            box-shadow: 0 28px 80px rgba(9, 47, 58, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .hero-band::before,
+        .hero-band::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            border-radius: 999px;
+            pointer-events: none;
+        }
+
+        .hero-band::before {
+            width: 420px;
+            height: 420px;
+            top: -230px;
+            right: -82px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .hero-band::after {
+            width: 180px;
+            height: 180px;
+            right: 13%;
+            bottom: -92px;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 90px rgba(255, 255, 255, 0.18);
+        }
+
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.88);
+            padding: 8px 12px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-kicker::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--yellow);
+            box-shadow: 0 0 0 5px rgba(242, 182, 50, 0.18);
+        }
+
+        .hero-title {
+            max-width: 980px;
+            font-size: clamp(32px, 4.8vw, 68px);
+            line-height: 0.95;
+            letter-spacing: -0.055em;
+            text-wrap: balance;
+            text-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-subtitle {
+            max-width: 780px;
+            margin: 16px 0 0;
+            color: rgba(255, 255, 255, 0.84);
+            font-size: clamp(14px, 1.1vw, 17px);
+            line-height: 1.55;
+            font-weight: 650;
+        }
+
+        .panel,
+        .search,
+        .status,
+        .legend,
+        .antiquity-select {
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            background: var(--panel);
+            box-shadow: var(--shadow-out);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .panel {
+            border-radius: var(--radius-lg);
+        }
+
+        .tab-bar {
+            position: sticky;
+            top: 10px;
+            z-index: 700;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.68);
+        }
+
+        .tab-button {
+            min-width: 0;
+            flex: 1 1 220px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            background: transparent;
+            box-shadow: none;
+            color: #46606e;
+            padding: 13px 18px;
+            letter-spacing: 0.01em;
+        }
+
+        .tab-button:hover {
+            border-color: rgba(36, 107, 254, 0.12);
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--ink);
+            transform: translateY(-1px);
+        }
+
+        .tab-button.active {
+            background: var(--gradient-accent);
+            color: #fff;
+            box-shadow: 0 16px 34px rgba(36, 107, 254, 0.25);
+        }
+
+        .content-grid {
+            grid-template-columns: minmax(280px, 0.82fr) minmax(520px, 1.72fr) minmax(340px, 0.98fr);
+            gap: 18px;
+        }
+
+        .workspace,
+        .analysis-main,
+        .mapping-board,
+        .antiquity-board {
+            gap: 18px;
+        }
+
+        .sidebar,
+        .details,
+        .analysis-sidebar,
+        .analysis-details,
+        .mapping-side-panel,
+        .mapping-table-panel,
+        .antiquity-toolbar,
+        .antiquity-person-panel,
+        .antiquity-table-panel,
+        .charts-section,
+        .mapping-top-filters,
+        .mapping-bottom-filters {
+            padding: clamp(15px, 1.2vw, 22px);
+        }
+
+        .source,
+        .selected-subtitle,
+        .muted,
+        .science-note {
+            color: var(--muted);
+        }
+
+        .source {
+            display: inline-flex;
+            border-radius: 1000px;
+            background: rgba(0, 127, 118, 0.08);
+            color: #17655f;
+            padding: 7px 10px;
+            line-height: 1.25;
+        }
+
+        .metrics,
+        .analysis-kpi-grid,
+        .antiquity-kpi-row {
+            gap: 12px;
+        }
+
+        .metric {
+            position: relative;
+            min-height: 108px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: var(--radius-md);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 253, 0.82));
+            padding: 16px;
+            box-shadow: 0 14px 34px rgba(15, 43, 55, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .metric::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            background: var(--gradient-accent);
+        }
+
+        .metric::after {
+            content: "";
+            position: absolute;
+            width: 88px;
+            height: 88px;
+            right: -34px;
+            top: -28px;
+            border-radius: 999px;
+            background: rgba(36, 107, 254, 0.08);
+        }
+
+        .metric:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 44px rgba(15, 43, 55, 0.12);
+        }
+
+        .metric strong {
+            position: relative;
+            z-index: 1;
+            color: var(--ink);
+            font-size: clamp(25px, 2.1vw, 38px);
+            letter-spacing: -0.055em;
+        }
+
+        .metric span {
+            position: relative;
+            z-index: 1;
+            margin-top: 10px;
+            color: #526b78;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .metric small {
+            position: relative;
+            z-index: 1;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .section {
+            border-color: rgba(9, 47, 58, 0.11);
+        }
+
+        .sidebar .section,
+        .mapping-filter-group,
+        .narrative-card {
+            border: 1px solid rgba(9, 47, 58, 0.08);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.54);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 10px 28px rgba(15, 43, 55, 0.06);
+        }
+
+        .section-title {
+            color: var(--ink);
+            font-size: 11px;
+            letter-spacing: 0.075em;
+            text-transform: uppercase;
+        }
+
+        .chip-list,
+        .analysis-control-list,
+        .mode-row,
+        .selected-cities {
+            gap: 8px;
+        }
+
+        .chip-list,
+        .compact-filter-list,
+        .antiquity-person-list,
+        .table-wrap,
+        .mapping-side-panel,
+        .legend,
+        .analysis-legend,
+        .antiquity-legend {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(36, 107, 254, 0.44) rgba(9, 47, 58, 0.06);
+        }
+
+        .chip-list::-webkit-scrollbar,
+        .compact-filter-list::-webkit-scrollbar,
+        .antiquity-person-list::-webkit-scrollbar,
+        .table-wrap::-webkit-scrollbar,
+        .mapping-side-panel::-webkit-scrollbar,
+        .legend::-webkit-scrollbar,
+        .analysis-legend::-webkit-scrollbar,
+        .antiquity-legend::-webkit-scrollbar {
+            width: 9px;
+            height: 9px;
+        }
+
+        .chip-list::-webkit-scrollbar-thumb,
+        .compact-filter-list::-webkit-scrollbar-thumb,
+        .antiquity-person-list::-webkit-scrollbar-thumb,
+        .table-wrap::-webkit-scrollbar-thumb,
+        .mapping-side-panel::-webkit-scrollbar-thumb,
+        .legend::-webkit-scrollbar-thumb,
+        .analysis-legend::-webkit-scrollbar-thumb,
+        .antiquity-legend::-webkit-scrollbar-thumb {
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 999px;
+            background: rgba(36, 107, 254, 0.45);
+        }
+
+        .neo-button,
+        .chip,
+        .layer-button,
+        .mode-button,
+        .clear-button,
+        .download-link,
+        .analysis-layer-button,
+        .analysis-crime-button,
+        .person-card {
+            border: 1px solid rgba(9, 47, 58, 0.08);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.72);
+            color: #2c4655;
+            box-shadow: 0 8px 18px rgba(15, 43, 55, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+            transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease, border-color 180ms ease;
+        }
+
+        .analysis-layer-button,
+        .analysis-crime-button,
+        .person-card {
+            border-radius: var(--radius-md);
+        }
+
+        .neo-button:hover,
+        .chip:hover,
+        .layer-button:hover,
+        .mode-button:hover,
+        .clear-button:hover,
+        .download-link:hover,
+        .analysis-layer-button:hover,
+        .analysis-crime-button:hover,
+        .person-card:hover {
+            border-color: rgba(36, 107, 254, 0.22);
+            background: #fff;
+            box-shadow: 0 16px 28px rgba(15, 43, 55, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .chip.active,
+        .layer-button.active,
+        .mode-button.active,
+        .analysis-layer-button.active,
+        .analysis-crime-button.active,
+        .person-card.active {
+            border-color: rgba(255, 255, 255, 0.42);
+            background: var(--gradient-accent);
+            color: #fff;
+            box-shadow: 0 14px 30px rgba(36, 107, 254, 0.24);
+        }
+
+        .clear-button,
+        .download-link {
+            align-items: center;
+            border-radius: var(--radius-md);
+            min-height: 44px;
+        }
+
+        .clear-button {
+            background: linear-gradient(180deg, #ffffff, #f4f8fb);
+        }
+
+        .download-link {
+            background: linear-gradient(135deg, rgba(0, 127, 118, 0.11), rgba(36, 107, 254, 0.11));
+            color: var(--ink);
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: none;
+            box-shadow: var(--ring), 0 12px 28px rgba(15, 43, 55, 0.12) !important;
+        }
+
+        .map-shell,
+        .analysis-map-shell,
+        .antiquity-map-shell {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(15, 43, 55, 0.14);
+        }
+
+        .map-shell {
+            height: clamp(620px, calc(100vh - 210px), 1040px);
+        }
+
+        .map-shell::before,
+        .analysis-map-shell::before,
+        .antiquity-map-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 450;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.62), inset 0 0 80px rgba(9, 47, 58, 0.07);
+            border-radius: inherit;
+        }
+
+        .map-shell::after {
+            left: 18px;
+            bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(9, 47, 58, 0.78);
+            box-shadow: 0 12px 28px rgba(9, 47, 58, 0.18);
+            backdrop-filter: blur(12px);
+        }
+
+        .map-toolbar,
+        .analysis-map-toolbar {
+            top: 16px;
+            right: 16px;
+            left: 16px;
+            gap: 12px;
+        }
+
+        .search,
+        .status,
+        .analysis-status,
+        .antiquity-select {
+            min-height: 46px;
+            border-radius: 999px;
+        }
+
+        .search,
+        .antiquity-select {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--ink);
+        }
+
+        .search::placeholder {
+            color: rgba(96, 114, 127, 0.78);
+        }
+
+        .status,
+        .analysis-status {
+            border-color: rgba(0, 127, 118, 0.16);
+            background: rgba(235, 252, 248, 0.86);
+            color: #006d67;
+            white-space: nowrap;
+        }
+
+        .legend,
+        .analysis-legend,
+        .antiquity-legend {
+            right: 16px;
+            bottom: 20px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.84);
+        }
+
+        .legend-row {
+            gap: 9px;
+        }
+
+        .swatch {
+            width: 20px;
+            height: 14px;
+            border-radius: 6px;
+        }
+
+        .leaflet-container {
+            font-family: inherit;
+            background: #dceaf0;
+        }
+
+        .leaflet-control-zoom,
+        .leaflet-control-layers {
+            overflow: hidden;
+            border: 0 !important;
+            border-radius: 14px !important;
+            box-shadow: 0 12px 30px rgba(9, 47, 58, 0.16) !important;
+        }
+
+        .leaflet-control-zoom a {
+            border: 0 !important;
+            background: rgba(255, 255, 255, 0.92) !important;
+            color: var(--ink) !important;
+        }
+
+        .leaflet-popup-content-wrapper,
+        .leaflet-popup-tip {
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: 0 18px 48px rgba(9, 47, 58, 0.18);
+            backdrop-filter: blur(16px);
+        }
+
+        .chart-grid,
+        .analysis-chart-grid,
+        .mapping-details-grid,
+        .mapping-map-row,
+        .mapping-filter-strip,
+        .mapping-bottom-filters,
+        .antiquity-main-grid,
+        .antiquity-filter-row {
+            gap: 18px;
+        }
+
+        .chart-card {
+            border-color: rgba(255, 255, 255, 0.72);
+            border-radius: var(--radius-lg);
+            background:
+                radial-gradient(circle at 86% 18%, rgba(36, 107, 254, 0.08), transparent 16rem),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 251, 253, 0.84));
+            padding: 18px;
+            box-shadow: 0 18px 44px rgba(15, 43, 55, 0.1), inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+
+        .chart-card::before {
+            height: 5px;
+            background: var(--gradient-accent);
+        }
+
+        .chart-card .section-title {
+            font-size: 12px;
+        }
+
+        .chart-pill,
+        .share-row,
+        .science-row,
+        .detail-row,
+        .rank-value,
+        .person-rank {
+            border: 1px solid rgba(9, 47, 58, 0.06);
+            background: rgba(255, 255, 255, 0.68);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+        }
+
+        .share-track,
+        .rank-track {
+            background: rgba(9, 47, 58, 0.09);
+            box-shadow: inset 0 1px 3px rgba(9, 47, 58, 0.08);
+        }
+
+        .rank-fill,
+        .share-track i {
+            background: var(--gradient-accent);
+        }
+
+        .selected-title {
+            color: var(--ink);
+            font-size: clamp(22px, 1.8vw, 32px);
+            letter-spacing: -0.04em;
+        }
+
+        .detail-row {
+            grid-template-columns: minmax(105px, 0.42fr) minmax(0, 1fr);
+            border-radius: var(--radius-sm);
+            padding: 11px 12px;
+        }
+
+        .detail-row span:first-child {
+            color: #657b88;
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+            font-size: 11px;
+        }
+
+        .narrative-card {
+            padding: 15px;
+        }
+
+        .narrative-card-title {
+            letter-spacing: 0.055em;
+        }
+
+        .narrative-bullets li {
+            border: 1px solid rgba(9, 47, 58, 0.06);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.66);
+        }
+
+        .table-wrap {
+            border: 1px solid rgba(9, 47, 58, 0.07);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 10px 28px rgba(15, 43, 55, 0.06);
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid rgba(9, 47, 58, 0.08);
+            padding: 10px 11px;
+        }
+
+        th {
+            background: rgba(241, 247, 251, 0.96);
+            color: var(--ink);
+            font-size: 11px;
+            letter-spacing: 0.045em;
+            text-transform: uppercase;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: rgba(247, 251, 253, 0.58);
+        }
+
+        tbody tr:hover td {
+            background: rgba(36, 107, 254, 0.075);
+        }
+
+        .science-row {
+            border-radius: var(--radius-sm);
+            padding: 11px 12px;
+        }
+
+        .person-card {
+            grid-template-columns: 58px minmax(0, 1fr);
+            padding: 12px;
+        }
+
+        .person-rank {
+            height: 50px;
+            border-radius: 16px;
+        }
+
+        .person-main strong {
+            font-size: 13px;
+            color: inherit;
+        }
+
+        .person-main span {
+            font-size: 11px;
+        }
+
+        .mapping-filter-head {
+            align-items: center;
+        }
+
+        .mapping-map-row {
+            grid-template-columns: minmax(260px, 0.72fr) minmax(520px, 1.6fr) minmax(300px, 0.88fr);
+        }
+
+        .mapping-side-panel,
+        .mapping-table-panel,
+        .antiquity-person-panel {
+            box-shadow: var(--shadow-out);
+        }
+
+        .antiquity-select {
+            appearance: none;
+            background-image:
+                linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+            background-position:
+                calc(100% - 18px) 50%,
+                calc(100% - 12px) 50%;
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 34px;
+        }
+
+        .analysis-kpi-grid.mapping-kpi-grid,
+        .antiquity-kpi-row {
+            border-radius: var(--radius-lg);
+        }
+
+        @media (max-width: 1480px) {
+            .content-grid {
+                grid-template-columns: minmax(260px, 0.78fr) minmax(460px, 1.4fr) minmax(320px, 0.9fr);
+            }
+
+            .mapping-map-row {
+                grid-template-columns: minmax(240px, 0.72fr) minmax(440px, 1.45fr) minmax(280px, 0.82fr);
+            }
+        }
+
+        @media (max-width: 1240px) {
+            .content-grid,
+            .analysis-grid {
+                gap: 16px;
+            }
+
+            .mapping-map-row {
+                grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+            }
+        }
+
+        @media (max-width: 920px) {
+            .app {
+                padding: 12px;
+            }
+
+            .hero-band {
+                min-height: 132px;
+                text-align: center;
+            }
+
+            .hero-kicker,
+            .hero-subtitle {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .tab-bar {
+                top: 8px;
+                border-radius: 22px;
+            }
+
+            .tab-button {
+                flex-basis: 100%;
+            }
+
+            .content-grid,
+            .analysis-grid {
+                grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.22fr);
+            }
+
+            .map-shell,
+            .analysis-map-shell,
+            .antiquity-map-shell {
+                border-radius: 22px;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .app {
+                padding: 8px;
+                gap: 12px;
+            }
+
+            .hero-band {
+                border-radius: 22px;
+                padding: 20px 16px;
+            }
+
+            .hero-title {
+                font-size: clamp(27px, 10vw, 40px);
+            }
+
+            .hero-subtitle {
+                font-size: 13px;
+            }
+
+            .panel {
+                border-radius: 18px;
+            }
+
+            .tab-bar {
+                position: relative;
+                top: auto;
+                border-radius: 18px;
+            }
+
+            .tab-button {
+                padding: 11px 13px;
+            }
+
+            .content-grid,
+            .analysis-grid {
+                grid-template-columns: minmax(132px, 0.74fr) minmax(0, 1.26fr);
+                gap: 9px;
+            }
+
+            .sidebar,
+            .details,
+            .analysis-sidebar,
+            .analysis-details,
+            .mapping-side-panel,
+            .mapping-table-panel,
+            .antiquity-toolbar,
+            .antiquity-person-panel,
+            .antiquity-table-panel,
+            .charts-section,
+            .mapping-top-filters,
+            .mapping-bottom-filters {
+                padding: 10px;
+            }
+
+            .metric {
+                min-height: 76px;
+                border-radius: 14px;
+                padding: 11px 12px;
+            }
+
+            .metric strong {
+                font-size: 24px;
+            }
+
+            .metric span {
+                margin-top: 6px;
+                font-size: 9px;
+            }
+
+            .source {
+                padding: 6px 8px;
+                font-size: 9px;
+            }
+
+            .sidebar .section,
+            .mapping-filter-group {
+                border-radius: 14px;
+                padding: 10px;
+            }
+
+            .chip,
+            .layer-button,
+            .mode-button,
+            .clear-button,
+            .download-link,
+            .neo-button,
+            .analysis-layer-button,
+            .analysis-crime-button {
+                border-radius: 12px;
+            }
+
+            .map-toolbar,
+            .analysis-map-toolbar {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                gap: 7px;
+            }
+
+            .search,
+            .status,
+            .analysis-status,
+            .antiquity-select {
+                min-height: 38px;
+                border-radius: 13px;
+            }
+
+            .legend,
+            .analysis-legend,
+            .antiquity-legend {
+                right: 10px;
+                bottom: 12px;
+                border-radius: 14px;
+            }
+
+            .chart-card {
+                border-radius: 18px;
+                padding: 13px;
+            }
+
+            th,
+            td {
+                padding: 8px 7px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1508,13 +2569,15 @@
             <div>
                 <p class="hero-kicker">Demonstrativo territorial</p>
                 <h1 class="hero-title">PROERD - GEOLOCALIZAÇÃO</h1>
+                <p class="hero-subtitle">Leitura territorial das escolas, alunos e equipes mapeadas no Ceará.</p>
             </div>
         </header>
 
         <nav class="tab-bar panel" aria-label="Abas do relatório">
-            <button class="tab-button active" data-tab="territorialPanel">Território PROERD</button>
-            <button class="tab-button" data-tab="mappingPanel">Análise científica</button>
-            <button class="tab-button" data-tab="antiquityPanel">Antiguidade</button>
+            <button class="tab-button active" data-tab="territorialPanel">Distribuição territorial</button>
+            <button class="tab-button" data-tab="mappingPanel">Instrutores e monitores</button>
+            <button class="tab-button" data-tab="antiquityPanel">Efetivo por antiguidade
+            </button>
         </nav>
 
         <section class="tab-panel" id="territorialPanel">
@@ -1525,15 +2588,15 @@
                 <section class="metrics">
                     <div class="metric">
                         <strong id="metricSchools">207</strong>
-                        <span>Escolas</span>
+                        <span>Escolas atendidas</span>
                     </div>
                     <div class="metric">
                         <strong id="metricStudents">19411</strong>
-                        <span>Alunos</span>
+                        <span>Alunos alcançados</span>
                     </div>
                     <div class="metric">
                         <strong id="metricCities">46</strong>
-                        <span>Municípios</span>
+                        <span>Municípios com dados</span>
                     </div>
                     <div class="metric">
                         <strong id="metricAverage">0</strong>
@@ -1542,7 +2605,7 @@
                 </section>
 
                 <div class="section">
-                    <p class="section-title">Camada do mapa</p>
+                    <p class="section-title">Mapa por</p>
                     <div class="mode-row">
                         <button class="layer-button active" data-layer="quantidade">Quantidade</button>
                         <button class="layer-button" data-layer="crpm">CRPM</button>
@@ -1552,7 +2615,7 @@
                 </div>
 
                 <div class="section">
-                    <p class="section-title">Cor do mapa</p>
+                    <p class="section-title">Indicador do mapa</p>
                     <div class="mode-row">
                         <button class="mode-button active" data-mode="escolas">Escolas</button>
                         <button class="mode-button" data-mode="alunos">Alunos</button>
@@ -1580,7 +2643,7 @@
                 </div>
 
                 <div class="section">
-                    <p class="section-title">Municípios para cálculo</p>
+                    <p class="section-title">Municípios analisados</p>
                     <div class="chip-list" id="cityFilters"></div>
                 </div>
 
@@ -1590,25 +2653,27 @@
             </aside>
 
             <main class="workspace">
-                
+
                 <section class="charts-section panel">
-                    <p class="section-title">Gráficos</p>
+                    <p class="section-title">Leituras do território</p>
                     <div class="chart-grid">
                         <div class="chart-card chart-card-wide">
-                            <p class="section-title">Colunas - Top municípios</p>
-                            <div class="chart-scroll" aria-label="Rolagem horizontal do gráfico de colunas">
+                            <p class="section-title" id="columnChartTitle">Ranking de municípios</p>
+                            <div class="chart-insight" id="columnChartInsight"></div>
+                            <div class="chart-scroll" aria-label="Ranking horizontal dos principais municípios">
                                 <div class="column-canvas-shell" id="columnChartShell">
                                     <canvas id="columnChart"></canvas>
                                 </div>
                             </div>
                         </div>
                         <div class="chart-card">
-                            <p class="section-title">Treemap - Participação de alunos</p>
+                            <p class="section-title">Participação dos alunos no recorte</p>
+                            <div class="chart-insight" id="treemapInsight"></div>
                             <div class="treemap" id="treemapChart"></div>
                         </div>
                     </div>
                 </section>
-                
+
                 <section class="map-shell panel">
                     <div id="schoolMap" aria-label="Mapa de escolas por município"></div>
                     <div class="map-toolbar">
@@ -1624,16 +2689,17 @@
                 <p class="selected-subtitle" id="selectedSubtitle">Resumo da aba DADOS</p>
 
                 <section class="detail-list" id="detailList"></section>
+                <section class="narrative-card" id="territorialNarrative"></section>
                 <div class="selected-cities" id="selectedCities"></div>
 
                 <section class="section ranking-section">
-                    <p class="section-title">Dashboard de quantidades</p>
+                    <p class="section-title">Leituras rápidas</p>
                     <div class="rank-panel" id="schoolRanking"></div>
                     <div class="rank-panel" id="studentRanking"></div>
                     <div class="rank-panel" id="averageRanking"></div>
                 </section>
 
-                <p class="section-title table-title">Tabela filtrada</p>
+                <p class="section-title table-title">Detalhamento dos registros</p>
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -1651,7 +2717,7 @@
                 </div>
 
                 <div class="section unmatched-section">
-                    <p class="section-title">Não mapeados</p>
+                    <p class="section-title">Pendências de geocodificação</p>
                     <div class="muted" id="unmatchedText"></div>
                 </div>
             </aside>
@@ -1662,24 +2728,24 @@
             <div class="mapping-board">
                 <section class="analysis-kpi-grid mapping-kpi-grid panel">
                     <div class="metric">
-                        <strong id="mappingMetricCityRegions">29</strong>
-                        <span>Região por cidade</span>
-                        <small class="science-note" id="mappingMetricCityRegionsNote">11 região(ões) de atividade</small>
+                        <strong id="mappingMetricCityRegions">15,8%</strong>
+                        <span>Cobertura territorial</span>
+                        <small class="science-note" id="mappingMetricCityRegionsNote">29 de 184 municípios da malha oficial</small>
                     </div>
                     <div class="metric">
-                        <strong id="mappingMetricInstructors">65</strong>
-                        <span>Instrutores</span>
-                        <small class="science-note" id="mappingMetricInstructorsNote">Total filtrado por POST/GRAD</small>
+                        <strong id="mappingMetricInstructors">2,6</strong>
+                        <span>Média por município</span>
+                        <small class="science-note" id="mappingMetricInstructorsNote">Registros por município mapeado</small>
                     </div>
                     <div class="metric">
-                        <strong id="mappingMetricMonitors">3</strong>
-                        <span>Monitores</span>
-                        <small class="science-note" id="mappingMetricMonitorsNote">Total filtrado por POST/GRAD</small>
+                        <strong id="mappingMetricMonitors">45,9%</strong>
+                        <span>Concentração top 5</span>
+                        <small class="science-note" id="mappingMetricMonitorsNote">Participação dos maiores municípios</small>
                     </div>
                     <div class="metric">
-                        <strong id="mappingMetricPostGrad">SD</strong>
-                        <span>POST/GRAD predominante</span>
-                        <small class="science-note" id="mappingMetricPostGradNote">16 registro(s)</small>
+                        <strong id="mappingMetricPostGrad">0,145</strong>
+                        <span>HHI regional</span>
+                        <small class="science-note" id="mappingMetricPostGradNote">Índice de concentração por região</small>
                     </div>
                 </section>
 
@@ -1819,7 +2885,7 @@
                         </div>
 
                         <div class="section">
-                            <p class="section-title">Não mapeados</p>
+                            <p class="section-title">Pendências de geocodificação</p>
                             <div class="muted" id="mappingUnmatchedText"></div>
                         </div>
                     </aside>
@@ -2303,9 +3369,11 @@
         }
 
         function chartRows(limit = 10) {
+            const key = state.mode === "alunos" ? "alunos" : "escolas";
+            const secondaryKey = key === "alunos" ? "escolas" : "alunos";
             return filteredRows()
                 .slice()
-                .sort((a, b) => b.alunos - a.alunos || b.escolas - a.escolas)
+                .sort((a, b) => (b[key] || 0) - (a[key] || 0) || (b[secondaryKey] || 0) - (a[secondaryKey] || 0))
                 .slice(0, limit);
         }
 
@@ -2314,13 +3382,13 @@
             return text.length > size ? `${text.slice(0, size - 1)}.` : text;
         }
 
-        function axisLabel(value) {
+        function axisLabel(value, size = 18) {
             const words = String(value || "").split(/\s+/).filter(Boolean);
             const lines = [];
             let current = "";
             words.forEach((word) => {
                 const candidate = current ? `${current} ${word}` : word;
-                if (candidate.length <= 14) {
+                if (candidate.length <= size) {
                     current = candidate;
                 } else {
                     if (current) {
@@ -2332,9 +3400,83 @@
             if (current) {
                 lines.push(current);
             }
-            return lines.slice(0, 3).map((line, index) => (
-                index === 2 && lines.length > 3 ? shortLabel(line, 12) : shortLabel(line, 14)
+            return lines.slice(0, 2).map((line, index) => (
+                index === 1 && lines.length > 2 ? shortLabel(line, Math.max(12, size - 2)) : shortLabel(line, size)
             ));
+        }
+
+        function compactNumber(value) {
+            return new Intl.NumberFormat("pt-BR", {
+                notation: Math.abs(value || 0) >= 10000 ? "compact" : "standard",
+                maximumFractionDigits: 1
+            }).format(value || 0);
+        }
+
+        function percentLabel(value) {
+            return `${(value || 0).toFixed(1).replace(".", ",")}%`;
+        }
+
+        function decimalNumber(value, decimals = 1) {
+            return new Intl.NumberFormat("pt-BR", {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value || 0);
+        }
+
+        function topRowsBy(rows, key, limit = 5) {
+            return [...rows]
+                .sort((a, b) => (b[key] || 0) - (a[key] || 0) || String(a.municipio_mapeado || a.municipio_tabela).localeCompare(String(b.municipio_mapeado || b.municipio_tabela), "pt-BR"))
+                .slice(0, limit);
+        }
+
+        function chartMainValue(row) {
+            return state.mode === "alunos" ? (row.alunos || 0) : (row.escolas || 0);
+        }
+
+        function chartMainLabel() {
+            return state.mode === "alunos" ? "Alunos" : "Escolas";
+        }
+
+        const readableValuePlugin = {
+            id: "readableValuePlugin",
+            afterDatasetsDraw(chart) {
+                const options = chart.options.plugins?.readableValuePlugin || {};
+                if (options.display === false) {
+                    return;
+                }
+                const { ctx, chartArea } = chart;
+                const isHorizontal = chart.options.indexAxis === "y";
+                ctx.save();
+                ctx.font = "800 11px Inter, Segoe UI, sans-serif";
+                ctx.fillStyle = options.color || "#344a55";
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    if (meta.hidden) {
+                        return;
+                    }
+                    meta.data.forEach((element, index) => {
+                        const raw = dataset.data[index] || 0;
+                        const label = options.formatter ? options.formatter(raw, dataset, index) : compactNumber(raw);
+                        if (isHorizontal) {
+                            const x = Math.min(element.x + 8, chartArea.right - 4);
+                            ctx.textAlign = x > chartArea.right - 40 ? "right" : "left";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(label, x, element.y);
+                        } else {
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "bottom";
+                            ctx.fillText(label, element.x, Math.max(chartArea.top + 10, element.y - 7));
+                        }
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
+        if (window.Chart) {
+            Chart.defaults.font.family = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+            Chart.defaults.color = "#52636c";
+            Chart.defaults.borderColor = "rgba(22, 50, 58, 0.09)";
         }
 
         function renderColumnChart(rows) {
@@ -2343,35 +3485,92 @@
             }
             const ctx = document.getElementById("columnChart");
             const shell = document.getElementById("columnChartShell");
-            if (shell) {
-                shell.style.width = `${Math.max(720, rows.length * 132)}px`;
-            }
+            const title = document.getElementById("columnChartTitle");
+            const insight = document.getElementById("columnChartInsight");
+            const metricLabel = chartMainLabel();
             const labels = rows.map((row) => row.municipio_mapeado || row.municipio_tabela);
+            const values = rows.map(chartMainValue);
+            const totalVisible = values.reduce((sum, value) => sum + value, 0);
+            const leader = rows[0];
+
+            if (shell) {
+                shell.style.width = "100%";
+                shell.style.minWidth = "0";
+                shell.style.height = `${Math.max(326, rows.length * 34 + 92)}px`;
+            }
+            if (title) {
+                title.textContent = `Top municípios por ${metricLabel.toLowerCase()}`;
+            }
+            if (insight) {
+                const leaderName = leader ? (leader.municipio_mapeado || leader.municipio_tabela) : "Sem dados";
+                const leaderValue = leader ? chartMainValue(leader) : 0;
+                insight.innerHTML = rows.length ? `
+                    <span class="chart-pill">Destaque <strong>${escapeHtml(leaderName)}</strong></span>
+                    <span class="chart-pill">${metricLabel} no top ${rows.length}: <strong>${formatNumber(totalVisible)}</strong></span>
+                    <span class="chart-pill">Maior valor: <strong>${formatNumber(leaderValue)}</strong></span>
+                ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
+            }
+
             const data = {
-                labels: labels.map(axisLabel),
+                labels: labels.map((label) => axisLabel(label, 19)),
                 datasets: [
                     {
-                        label: "Escolas",
-                        data: rows.map((row) => row.escolas),
-                        backgroundColor: "#087f7a",
-                        borderRadius: 6,
-                        categoryPercentage: 0.72,
-                        barPercentage: 0.82,
-                        yAxisID: "schools"
-                    },
-                    {
-                        label: "Alunos",
-                        data: rows.map((row) => row.alunos),
-                        backgroundColor: "#e7aa25",
-                        borderRadius: 6,
-                        categoryPercentage: 0.72,
-                        barPercentage: 0.82,
-                        yAxisID: "students"
+                        label: metricLabel,
+                        data: values,
+                        backgroundColor: rows.map((_, index) => index === 0 ? "#087f7a" : index < 3 ? "#256fba" : "#8ba3ad"),
+                        borderRadius: 999,
+                        borderSkipped: false,
+                        categoryPercentage: 0.78,
+                        barPercentage: 0.74
                     }
                 ]
             };
+            const options = {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 420, easing: "easeOutQuart" },
+                interaction: { mode: "nearest", axis: "y", intersect: false },
+                layout: { padding: { right: 54, left: 6, top: 4, bottom: 2 } },
+                plugins: {
+                    legend: { display: false },
+                    readableValuePlugin: { formatter: (value) => compactNumber(value) },
+                    tooltip: {
+                        backgroundColor: "rgba(22, 50, 58, 0.94)",
+                        titleMarginBottom: 8,
+                        padding: 12,
+                        callbacks: {
+                            title(items) {
+                                return labels[items[0].dataIndex];
+                            },
+                            label(context) {
+                                const row = rows[context.dataIndex];
+                                return [
+                                    `${metricLabel}: ${formatNumber(context.raw)}`,
+                                    `Escolas: ${formatNumber(row?.escolas)}`,
+                                    `Alunos: ${formatNumber(row?.alunos)}`,
+                                    `Alunos/escola: ${formatNumber(average(row || {}))}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: metricLabel, color: "#64717d", font: { weight: "900" } },
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { callback: (value) => compactNumber(value), maxTicksLimit: 5 }
+                    },
+                    y: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { autoSkip: false, font: { size: 11, weight: "800" }, color: "#344a55", padding: 8 }
+                    }
+                }
+            };
             if (charts.column) {
                 charts.column.data = data;
+                charts.column.options = options;
                 charts.column.resize();
                 charts.column.update();
                 return;
@@ -2379,80 +3578,82 @@
             charts.column = new Chart(ctx, {
                 type: "bar",
                 data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: "index", intersect: false },
-                    plugins: {
-                        legend: {
-                            position: "top",
-                            labels: {
-                                boxWidth: 10,
-                                boxHeight: 10,
-                                padding: 10,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title(items) {
-                                    return labels[items[0].dataIndex];
-                                },
-                                label(context) {
-                                    return `${context.dataset.label}: ${formatNumber(context.raw)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            offset: true,
-                            ticks: {
-                                maxRotation: 0,
-                                autoSkip: false,
-                                font: { size: 11, weight: "700" },
-                                padding: 8
-                            }
-                        },
-                        students: {
-                            beginAtZero: true,
-                            position: "left",
-                            title: { display: true, text: "Alunos" },
-                            ticks: { callback: (value) => formatNumber(value) }
-                        },
-                        schools: {
-                            beginAtZero: true,
-                            position: "right",
-                            title: { display: true, text: "Escolas" },
-                            grid: { drawOnChartArea: false },
-                            ticks: { precision: 0 }
-                        }
-                    }
-                }
+                options,
+                plugins: [readableValuePlugin]
             });
         }
 
         function renderTreemap(rows) {
             const container = document.getElementById("treemapChart");
+            const insight = document.getElementById("treemapInsight");
             const total = Math.max(sumRows(rows, "alunos"), 1);
-            const colors = ["#087f7a", "#256fba", "#e7aa25", "#c54b3c", "#6a7d86", "#16323a"];
-            container.innerHTML = rows.slice(0, 12).map((row, index) => {
-                const ratio = row.alunos / total;
-                const width = Math.max(18, ratio * 100);
-                const grow = Math.max(1, Math.round(ratio * 100));
+            const items = rows.slice(0, 8);
+            const leader = items[0];
+            if (insight) {
+                insight.innerHTML = leader ? `
+                    <span class="chart-pill">Total exibido <strong>${formatNumber(sumRows(items, "alunos"))}</strong></span>
+                    <span class="chart-pill">Maior participação <strong>${percentLabel((leader.alunos || 0) / total * 100)}</strong></span>
+                ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
+            }
+            container.innerHTML = items.map((row) => {
+                const label = row.municipio_mapeado || row.municipio_tabela;
+                const percent = (row.alunos || 0) / total * 100;
                 return `
-                    <div class="tree-tile" style="flex-grow:${grow}; flex-basis:calc(${width}% - 6px); background:${colors[index % colors.length]}">
-                        <strong title="${row.municipio_mapeado || row.municipio_tabela}">${row.municipio_mapeado || row.municipio_tabela}</strong>
-                        <span>${formatNumber(row.alunos)} alunos</span>
+                    <div class="share-row">
+                        <div class="share-head">
+                            <strong title="${escapeHtml(label)}">${escapeHtml(label)}</strong>
+                            <span>${formatNumber(row.alunos)} · ${percentLabel(percent)}</span>
+                        </div>
+                        <div class="share-track" aria-label="${escapeHtml(label)}: ${percentLabel(percent)} dos alunos exibidos">
+                            <i style="width:${Math.min(100, Math.max(3, percent))}%"></i>
+                        </div>
                     </div>
                 `;
             }).join("") || '<span class="muted">Sem dados para exibir</span>';
         }
 
         function renderCharts() {
-            const rows = chartRows(12);
+            const rows = chartRows(10);
             renderColumnChart(rows);
             renderTreemap(rows);
+        }
+
+
+        function renderTerritorialNarrative() {
+            const container = document.getElementById("territorialNarrative");
+            if (!container) {
+                return;
+            }
+            const rows = filteredRows();
+            const schools = sumRows(rows, "escolas");
+            const students = sumRows(rows, "alunos");
+            const municipalitiesTotal = pageData.summary.municipalities_total || rows.length || 1;
+            const coverage = rows.length / municipalitiesTotal * 100;
+            const topStudent = topRowsBy(rows, "alunos", 1)[0];
+            const topSchool = topRowsBy(rows, "escolas", 1)[0];
+            const top5Students = sumRows(topRowsBy(rows, "alunos", 5), "alunos");
+            const avg = schools ? students / schools : 0;
+
+            if (!rows.length) {
+                container.innerHTML = `
+                    <p class="narrative-card-title">Leitura expositiva</p>
+                    <p class="narrative-card-text">Nenhum município atende aos filtros atuais. Reduza os filtros para recuperar a leitura territorial.</p>
+                `;
+                return;
+            }
+
+            const topStudentName = topStudent ? (topStudent.municipio_mapeado || topStudent.municipio_tabela) : "-";
+            const topSchoolName = topSchool ? (topSchool.municipio_mapeado || topSchool.municipio_tabela) : "-";
+            container.innerHTML = `
+                <p class="narrative-card-title">Leitura expositiva</p>
+                <p class="narrative-card-text">Este recorte mostra a presença do PROERD em ${formatNumber(rows.length)} município(s), com ${formatNumber(schools)} escola(s) e ${formatNumber(students)} aluno(s).</p>
+                <ul class="narrative-bullets">
+                    <li><strong>${percentLabel(coverage)}</strong> da malha municipal aparece no recorte atual.</li>
+                    <li><strong>${escapeHtml(topStudentName)}</strong> concentra o maior número de alunos: ${formatNumber(topStudent?.alunos || 0)}.</li>
+                    <li><strong>${escapeHtml(topSchoolName)}</strong> lidera em escolas: ${formatNumber(topSchool?.escolas || 0)}.</li>
+                    <li>A média do recorte é de <strong>${decimalNumber(avg, 1)}</strong> aluno(s) por escola; os 5 maiores municípios somam <strong>${percentLabel(students ? top5Students / students * 100 : 0)}</strong> dos alunos.</li>
+                </ul>
+            `;
         }
 
         function setDetails() {
@@ -2823,23 +4024,30 @@
 
         function updateMappingCards(records, rows) {
             const regions = countMapping(records, "region");
-            const instructors = roleCount(records, "Instrutor");
-            const monitors = roleCount(records, "Monitor");
-            const topPostGrad = topCount(records, "post_grad");
-            const topInstructorPost = topPostGradForRole(records, "Instrutor");
-            const topMonitorPost = topPostGradForRole(records, "Monitor");
+            const mappedAssignments = rows.reduce((total, row) => total + (row.registros || 0), 0);
+            const municipalitiesTotal = scientificData.summary.municipalities_total || rows.length || 1;
+            const coverage = rows.length / municipalitiesTotal * 100;
+            const averagePerCity = rows.length ? mappedAssignments / rows.length : 0;
+            const top5Total = rows.slice(0, 5).reduce((total, row) => total + (row.registros || 0), 0);
+            const concentration = mappedAssignments ? top5Total / mappedAssignments * 100 : 0;
+            const hhi = records.length
+                ? regions.reduce((total, item) => total + Math.pow((item.count || 0) / records.length, 2), 0)
+                : 0;
+            const topRegion = regions[0];
 
-            document.getElementById("mappingMetricCityRegions").textContent = formatNumber(rows.length);
+            document.getElementById("mappingMetricCityRegions").textContent = percentLabel(coverage);
             document.getElementById("mappingMetricCityRegionsNote").textContent =
-                `${formatNumber(regions.length)} região(ões) de atividade no filtro`;
-            document.getElementById("mappingMetricInstructors").textContent = formatNumber(instructors);
+                `${formatNumber(rows.length)} de ${formatNumber(municipalitiesTotal)} município(s) com registro`;
+            document.getElementById("mappingMetricInstructors").textContent = decimalNumber(averagePerCity, 1);
             document.getElementById("mappingMetricInstructorsNote").textContent =
-                topInstructorPost.count ? `${topInstructorPost.label} · ${formatNumber(topInstructorPost.count)}` : "Sem instrutor no filtro";
-            document.getElementById("mappingMetricMonitors").textContent = formatNumber(monitors);
+                `${formatNumber(mappedAssignments)} registro(s) territorializados no filtro`;
+            document.getElementById("mappingMetricMonitors").textContent = percentLabel(concentration);
             document.getElementById("mappingMetricMonitorsNote").textContent =
-                topMonitorPost.count ? `${topMonitorPost.label} · ${formatNumber(topMonitorPost.count)}` : "Sem monitor no filtro";
-            document.getElementById("mappingMetricPostGrad").textContent = topPostGrad.label;
-            document.getElementById("mappingMetricPostGradNote").textContent = `${formatNumber(topPostGrad.count)} registro(s)`;
+                `Top 5 municípios: ${formatNumber(top5Total)} registro(s)`;
+            document.getElementById("mappingMetricPostGrad").textContent = decimalNumber(hhi, 3);
+            document.getElementById("mappingMetricPostGradNote").textContent = topRegion
+                ? `Região predominante: ${topRegion.label} · ${formatNumber(topRegion.count)}`
+                : "Sem região no filtro";
         }
 
         function renderMappingTable(records) {
@@ -3136,57 +4344,70 @@
             if (!window.Chart) {
                 return;
             }
-            const labels = items.slice(0, 10).map((item) => item.label);
+            const visibleItems = items.slice(0, 8);
+            const labels = visibleItems.map((item) => item.label);
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                canvas.style.height = `${Math.max(254, visibleItems.length * 31 + 72)}px`;
+            }
             const data = {
-                labels: labels.map((label) => axisLabel(label)),
+                labels: labels.map((label) => axisLabel(label, 17)),
                 datasets: [{
                     label: "Registros",
-                    data: items.slice(0, 10).map((item) => item.count),
-                    backgroundColor: color,
-                    borderRadius: 6,
-                    categoryPercentage: 0.72,
-                    barPercentage: 0.82
+                    data: visibleItems.map((item) => item.count),
+                    backgroundColor: visibleItems.map((_, index) => index === 0 ? color : "#8ba3ad"),
+                    borderRadius: 999,
+                    borderSkipped: false,
+                    categoryPercentage: 0.78,
+                    barPercentage: 0.74
                 }]
+            };
+            const options = {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 420, easing: "easeOutQuart" },
+                layout: { padding: { right: 42, left: 4, top: 2, bottom: 0 } },
+                plugins: {
+                    legend: { display: false },
+                    readableValuePlugin: { formatter: (value) => formatNumber(value) },
+                    tooltip: {
+                        backgroundColor: "rgba(22, 50, 58, 0.94)",
+                        padding: 12,
+                        callbacks: {
+                            title(items) {
+                                return labels[items[0].dataIndex];
+                            },
+                            label(context) {
+                                return `Registros: ${formatNumber(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { precision: 0, maxTicksLimit: 4 }
+                    },
+                    y: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { autoSkip: false, font: { size: 10, weight: "800" }, color: "#344a55", padding: 7 }
+                    }
+                }
             };
             if (charts[chartKey]) {
                 charts[chartKey].data = data;
+                charts[chartKey].options = options;
                 charts[chartKey].resize();
                 charts[chartKey].update();
                 return;
             }
-            charts[chartKey] = new Chart(document.getElementById(canvasId), {
+            charts[chartKey] = new Chart(canvas, {
                 type: "bar",
                 data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title(items) {
-                                    return labels[items[0].dataIndex];
-                                },
-                                label(context) {
-                                    return `Registros: ${formatNumber(context.raw)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 0,
-                                autoSkip: false,
-                                font: { size: 10, weight: "700" }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        }
-                    }
-                }
+                options,
+                plugins: [readableValuePlugin]
             });
         }
 
@@ -3288,6 +4509,7 @@
             updateModeButtons();
             updateLayerButtons();
             updateMetrics();
+            renderTerritorialNarrative();
             renderDashboards();
             renderCharts();
             renderLegend();
@@ -3467,7 +4689,6 @@
             document.getElementById("mappingSearchInput").value = "";
             updateMappingView();
         });
-
         document.getElementById("antiquitySearchInput").addEventListener("input", (event) => {
             antiquityState.search = normalizeText(event.target.value);
             antiquityState.selectedId = null;

@@ -18,7 +18,7 @@ http://127.0.0.1:5010
 
 ## Gerar versão para GitHub Pages
 
-Sempre que a planilha `Análise.xlsx` mudar, gere novamente os arquivos estáticos:
+Sempre que a planilha `Análise.xlsx` mudar, gere novamente os arquivos estáticos localmente:
 
 ```bash
 python3 build_static.py
@@ -29,6 +29,8 @@ Isso atualiza:
 - `docs/index.html`
 - `docs/ceara_municipios.pdf`
 - `docs/ceara_municipios.csv`
+
+No GitHub, o workflow `.github/workflows/update-static-site.yml` roda esse build automaticamente quando houver push na `main` alterando template, dados ou scripts do relatório. Se `docs/` mudar, ele cria um commit automático com a versão estática atualizada.
 
 ## Publicar online no GitHub Pages
 
