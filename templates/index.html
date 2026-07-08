@@ -573,6 +573,10 @@
             height: 226px !important;
         }
 
+        .analysis-chart-grid .chart-card-wide {
+            grid-column: 1 / -1;
+        }
+
         .science-list {
             display: grid;
             gap: 8px;
@@ -993,6 +997,10 @@
 
         .analysis-chart-grid .chart-card {
             min-height: 360px;
+        }
+
+        .analysis-chart-grid .chart-card-wide {
+            grid-column: 1 / -1;
         }
 
         .analysis-chart-grid .chart-card canvas {
@@ -2736,6 +2744,16 @@
                             <div class="chart-insight" id="treemapInsight"></div>
                             <div class="treemap" id="treemapChart"></div>
                         </div>
+                        <div class="chart-card chart-card-wide">
+                            <p class="section-title">CRPM por escolas e alunos</p>
+                            <div class="chart-insight" id="crpmColumnInsight"></div>
+                            <canvas id="crpmColumnChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <p class="section-title">Treemap CRPM assistidas</p>
+                            <div class="chart-insight" id="crpmTreemapInsight"></div>
+                            <div class="treemap" id="crpmTreemapChart"></div>
+                        </div>
                     </div>
                 </section>
 
@@ -2902,6 +2920,11 @@
                     <section class="charts-section panel">
                         <p class="section-title">Painéis estatísticos</p>
                         <div class="analysis-chart-grid">
+                            <div class="chart-card chart-card-wide">
+                                <p class="section-title">Dispersão: nomes x municípios</p>
+                                <div class="chart-insight" id="mappingCoverageInsight"></div>
+                                <canvas id="mappingCoverageScatter"></canvas>
+                            </div>
                             <div class="chart-card">
                                 <p class="section-title">Cidade</p>
                                 <canvas id="mappingRegionChart"></canvas>
@@ -3049,10 +3072,12 @@
         };
         const charts = {
             column: null,
+            crpmColumn: null,
             mappingRegion: null,
             mappingFunction: null,
             mappingBattalion: null,
-            mappingPost: null
+            mappingPost: null,
+            mappingCoverage: null
         };
         const mappingState = {
             layer: "registros",
@@ -3556,6 +3581,36 @@
                 .slice(0, limit);
         }
 
+        function crpmRows(rows) {
+            const crpmMap = new Map();
+            rows.forEach((row) => {
+                const crpms = (row.crpm_values && row.crpm_values.length ? row.crpm_values : [row.crpm || "Sem CRPM"]).filter(Boolean);
+                const divisor = Math.max(crpms.length, 1);
+                crpms.forEach((crpm) => {
+                    if (!crpmMap.has(crpm)) {
+                        crpmMap.set(crpm, {
+                            label: crpm,
+                            escolas: 0,
+                            alunos: 0,
+                            municipios: 0
+                        });
+                    }
+                    const item = crpmMap.get(crpm);
+                    item.escolas += (row.escolas || 0) / divisor;
+                    item.alunos += (row.alunos || 0) / divisor;
+                    item.municipios += 1 / divisor;
+                });
+            });
+            return Array.from(crpmMap.values())
+                .map((item) => ({
+                    ...item,
+                    escolas: Math.round(item.escolas),
+                    alunos: Math.round(item.alunos),
+                    municipios: Math.round(item.municipios)
+                }))
+                .sort((a, b) => b.alunos - a.alunos || b.escolas - a.escolas || a.label.localeCompare(b.label, "pt-BR"));
+        }
+
         function chartMainValue(row) {
             return state.mode === "alunos" ? (row.alunos || 0) : (row.escolas || 0);
         }
@@ -3652,10 +3707,10 @@
                         label: metricLabel,
                         data: values,
                         backgroundColor: rows.map((_, index) => index === 0 ? "#087f7a" : index < 3 ? "#256fba" : "#8ba3ad"),
-                        borderRadius: 999,
+                        borderRadius: 2,
                         borderSkipped: false,
-                        categoryPercentage: 0.78,
-                        barPercentage: 0.74
+                        categoryPercentage: 1,
+                        barPercentage: 1
                     }
                 ]
             };
@@ -3751,10 +3806,164 @@
             }).join("") || '<span class="muted">Sem dados para exibir</span>';
         }
 
+        function renderCrpmColumnChart(rows) {
+            const canvas = document.getElementById("crpmColumnChart");
+            const insight = document.getElementById("crpmColumnInsight");
+            const crpms = crpmRows(rows).slice(0, 8);
+            const labels = crpms.map((row) => row.label);
+            const students = crpms.map((row) => row.alunos);
+            const schools = crpms.map((row) => row.escolas);
+            const leader = crpms[0];
+
+            if (insight) {
+                insight.innerHTML = leader ? `
+                    <span class="chart-pill">CRPM destaque <strong>${escapeHtml(leader.label)}</strong></span>
+                    <span class="chart-pill">Alunos <strong>${formatNumber(leader.alunos)}</strong></span>
+                    <span class="chart-pill">Escolas <strong>${formatNumber(leader.escolas)}</strong></span>
+                ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
+            }
+
+            if (!window.Chart || !canvas) {
+                showChartFallback(canvas, crpms.map((row) => ({ label: row.label, value: row.alunos })));
+                return;
+            }
+            hideChartFallback(canvas);
+
+            const data = {
+                labels: labels.map((label) => axisLabel(label, 14)),
+                datasets: [
+                    {
+                        label: "Alunos",
+                        data: students,
+                        backgroundColor: "#087f7a",
+                        borderRadius: 2,
+                        borderSkipped: false,
+                        categoryPercentage: 1,
+                        barPercentage: 1,
+                        yAxisID: "students"
+                    },
+                    {
+                        label: "Escolas",
+                        data: schools,
+                        backgroundColor: "#e7aa25",
+                        borderRadius: 2,
+                        borderSkipped: false,
+                        categoryPercentage: 1,
+                        barPercentage: 1,
+                        yAxisID: "schools"
+                    }
+                ]
+            };
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 420, easing: "easeOutQuart" },
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true }
+                    },
+                    readableValuePlugin: { display: false },
+                    tooltip: {
+                        backgroundColor: "rgba(22, 50, 58, 0.94)",
+                        padding: 12,
+                        callbacks: {
+                            title(items) {
+                                return labels[items[0].dataIndex];
+                            },
+                            label(context) {
+                                return `${context.dataset.label}: ${formatNumber(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        offset: false,
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: { size: 10, weight: "800" }, maxRotation: 0, autoSkip: false }
+                    },
+                    students: {
+                        beginAtZero: true,
+                        position: "left",
+                        title: { display: true, text: "Alunos", color: "#64717d", font: { weight: "900" } },
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { callback: (value) => compactNumber(value), maxTicksLimit: 5 }
+                    },
+                    schools: {
+                        beginAtZero: true,
+                        position: "right",
+                        title: { display: true, text: "Escolas", color: "#64717d", font: { weight: "900" } },
+                        grid: { drawOnChartArea: false, drawBorder: false },
+                        ticks: { precision: 0, maxTicksLimit: 5 }
+                    }
+                }
+            };
+
+            try {
+                if (charts.crpmColumn) {
+                    charts.crpmColumn.data = data;
+                    charts.crpmColumn.options = options;
+                    charts.crpmColumn.resize();
+                    charts.crpmColumn.update();
+                    return;
+                }
+                charts.crpmColumn = new Chart(canvas, {
+                    type: "bar",
+                    data,
+                    options,
+                    plugins: [readableValuePlugin]
+                });
+            } catch (error) {
+                console.warn("Nao foi possivel renderizar o grafico por CRPM.", error);
+                showChartFallback(canvas, crpms.map((row) => ({ label: row.label, value: row.alunos })));
+            }
+        }
+
+        function renderCrpmTreemap(rows) {
+            const container = document.getElementById("crpmTreemapChart");
+            const insight = document.getElementById("crpmTreemapInsight");
+            const crpms = crpmRows(rows).slice(0, 8);
+            const totalStudents = Math.max(crpms.reduce((sum, row) => sum + row.alunos, 0), 1);
+            const totalSchools = Math.max(crpms.reduce((sum, row) => sum + row.escolas, 0), 1);
+            const leader = crpms[0];
+
+            if (insight) {
+                insight.innerHTML = leader ? `
+                    <span class="chart-pill">Maior assistência <strong>${escapeHtml(leader.label)}</strong></span>
+                    <span class="chart-pill">${percentLabel(leader.alunos / totalStudents * 100)} dos alunos</span>
+                ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
+            }
+            if (!container) {
+                return;
+            }
+            container.innerHTML = crpms.map((row) => {
+                const studentPercent = row.alunos / totalStudents * 100;
+                const schoolPercent = row.escolas / totalSchools * 100;
+                return `
+                    <div class="share-row">
+                        <div class="share-head">
+                            <strong title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</strong>
+                            <span>${formatNumber(row.alunos)} alunos · ${formatNumber(row.escolas)} escolas</span>
+                        </div>
+                        <div class="share-track" aria-label="${escapeHtml(row.label)}: ${percentLabel(studentPercent)} dos alunos do recorte">
+                            <i style="width:${Math.min(100, Math.max(3, studentPercent))}%"></i>
+                        </div>
+                        <div class="share-track" aria-label="${escapeHtml(row.label)}: ${percentLabel(schoolPercent)} das escolas do recorte">
+                            <i style="width:${Math.min(100, Math.max(3, schoolPercent))}%; background:linear-gradient(90deg, var(--yellow), var(--red));"></i>
+                        </div>
+                    </div>
+                `;
+            }).join("") || '<span class="muted">Sem dados para exibir</span>';
+        }
+
         function renderCharts() {
             const rows = chartRows(10);
             renderColumnChart(rows);
             renderTreemap(rows);
+            renderCrpmColumnChart(filteredRows());
+            renderCrpmTreemap(filteredRows());
         }
 
 
@@ -4484,6 +4693,114 @@
             }
         }
 
+        function renderMappingCoverageScatter(records, rows) {
+            const canvas = document.getElementById("mappingCoverageScatter");
+            const insight = document.getElementById("mappingCoverageInsight");
+            const totalNames = new Set(records.map((record) => normalizeText(record.name)).filter(Boolean)).size;
+            const mappedMunicipalities = rows.length;
+            const municipalitiesTotal = scientificData.summary.municipalities_total || mappedMunicipalities;
+            const remainingMunicipalities = Math.max(municipalitiesTotal - mappedMunicipalities, 0);
+            const coverage = municipalitiesTotal ? mappedMunicipalities / municipalitiesTotal * 100 : 0;
+            const fallbackItems = [
+                { label: `${mappedMunicipalities} município(s) com nomes`, value: totalNames },
+                { label: `${remainingMunicipalities} município(s) restantes do Ceará`, value: 0 }
+            ];
+
+            if (insight) {
+                insight.innerHTML = `
+                    <span class="chart-pill">Nomes <strong>${formatNumber(totalNames)}</strong></span>
+                    <span class="chart-pill">Municípios <strong>${formatNumber(mappedMunicipalities)} de ${formatNumber(municipalitiesTotal)}</strong></span>
+                    <span class="chart-pill">Cobertura <strong>${percentLabel(coverage)}</strong></span>
+                `;
+            }
+
+            if (!window.Chart || !canvas) {
+                showChartFallback(canvas, fallbackItems);
+                return;
+            }
+            hideChartFallback(canvas);
+
+            const points = [
+                {
+                    x: mappedMunicipalities,
+                    y: totalNames,
+                    r: Math.max(12, Math.min(30, totalNames / 2.6)),
+                    label: "Municípios com nomes"
+                },
+                {
+                    x: remainingMunicipalities,
+                    y: 0,
+                    r: Math.max(8, Math.min(24, remainingMunicipalities / 8)),
+                    label: "Demais municípios do Ceará"
+                }
+            ];
+            const data = {
+                datasets: [
+                    {
+                        label: "Cobertura",
+                        data: points,
+                        backgroundColor: ["rgba(8, 127, 122, 0.72)", "rgba(139, 163, 173, 0.42)"],
+                        borderColor: ["#087f7a", "#8ba3ad"],
+                        borderWidth: 2
+                    }
+                ]
+            };
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 420, easing: "easeOutQuart" },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "rgba(22, 50, 58, 0.94)",
+                        padding: 12,
+                        callbacks: {
+                            label(context) {
+                                const point = context.raw;
+                                return [
+                                    point.label,
+                                    `Municípios: ${formatNumber(point.x)}`,
+                                    `Nomes: ${formatNumber(point.y)}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: "Municípios", color: "#64717d", font: { weight: "900" } },
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { precision: 0, maxTicksLimit: 6 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: "Nomes", color: "#64717d", font: { weight: "900" } },
+                        grid: { color: "rgba(22, 50, 58, 0.08)", drawBorder: false },
+                        ticks: { precision: 0, maxTicksLimit: 6 }
+                    }
+                }
+            };
+
+            try {
+                if (charts.mappingCoverage) {
+                    charts.mappingCoverage.data = data;
+                    charts.mappingCoverage.options = options;
+                    charts.mappingCoverage.resize();
+                    charts.mappingCoverage.update();
+                    return;
+                }
+                charts.mappingCoverage = new Chart(canvas, {
+                    type: "bubble",
+                    data,
+                    options
+                });
+            } catch (error) {
+                console.warn("Nao foi possivel renderizar o grafico de dispersao.", error);
+                showChartFallback(canvas, fallbackItems);
+            }
+        }
+
         function renderMappingChart(chartKey, canvasId, items, color) {
             const visibleItems = items.slice(0, 8);
             const labels = visibleItems.map((item) => item.label);
@@ -4506,10 +4823,10 @@
                     label: "Registros",
                     data: visibleItems.map((item) => item.count),
                     backgroundColor: visibleItems.map((_, index) => index === 0 ? color : "#8ba3ad"),
-                    borderRadius: 999,
+                    borderRadius: 2,
                     borderSkipped: false,
-                    categoryPercentage: 0.78,
-                    barPercentage: 0.74
+                    categoryPercentage: 1,
+                    barPercentage: 1
                 }]
             };
             const options = {
@@ -4567,6 +4884,7 @@
         }
 
         function renderMappingCharts(records, rows) {
+            renderMappingCoverageScatter(records, rows);
             renderMappingChart(
                 "mappingRegion",
                 "mappingRegionChart",
