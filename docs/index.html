@@ -1005,6 +1005,71 @@
             padding: 0 2px 2px;
         }
 
+        .chart-fallback {
+            display: grid;
+            gap: 9px;
+            margin-top: 10px;
+        }
+
+        .chart-fallback[hidden] {
+            display: none;
+        }
+
+        .fallback-row {
+            display: grid;
+            gap: 6px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.58);
+            padding: 9px;
+            box-shadow: inset 0 0 0 1px rgba(199, 211, 218, 0.68);
+        }
+
+        .fallback-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .fallback-head span,
+        .fallback-head strong {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .fallback-track {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #dce6ea;
+            box-shadow: var(--shadow-in);
+        }
+
+        .fallback-track i {
+            display: block;
+            height: 100%;
+            min-width: 3px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--blue));
+        }
+
+        .map-fallback {
+            display: grid;
+            place-items: center;
+            height: 100%;
+            min-height: inherit;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 850;
+            text-align: center;
+            padding: 24px;
+        }
+
         .column-canvas-shell {
             width: 100%;
             min-width: 0;
@@ -3021,6 +3086,9 @@
         let antiquityFeatureByCity = new Map();
         let antiquityCurrentCityRows = new Map();
         let antiquityMarkerByRecord = new Map();
+        let map = null;
+        let mappingMap = null;
+        let antiquityMap = null;
 
         function formatNumber(value) {
             return new Intl.NumberFormat("pt-BR").format(value || 0);
@@ -3423,6 +3491,65 @@
             }).format(value || 0);
         }
 
+        function isPanelVisible(panelId) {
+            const panel = document.getElementById(panelId);
+            return Boolean(panel && !panel.hidden);
+        }
+
+        function showMapFallback(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                return;
+            }
+            container.innerHTML = '<div class="map-fallback">Mapa indisponível. Os painéis e tabelas continuam disponíveis.</div>';
+        }
+
+        function ensureChartFallback(canvas) {
+            if (!canvas) {
+                return null;
+            }
+            let fallback = canvas.nextElementSibling;
+            if (!fallback || !fallback.classList.contains("chart-fallback")) {
+                fallback = document.createElement("div");
+                fallback.className = "chart-fallback";
+                canvas.insertAdjacentElement("afterend", fallback);
+            }
+            return fallback;
+        }
+
+        function showChartFallback(canvas, items, valueFormatter = formatNumber) {
+            const fallback = ensureChartFallback(canvas);
+            if (!fallback) {
+                return;
+            }
+            const rows = items.slice(0, 8);
+            const max = Math.max(...rows.map((item) => item.value || 0), 1);
+            fallback.innerHTML = rows.map((item) => `
+                <div class="fallback-row">
+                    <div class="fallback-head">
+                        <strong title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</strong>
+                        <span>${valueFormatter(item.value || 0)}</span>
+                    </div>
+                    <div class="fallback-track" aria-label="${escapeHtml(item.label)}: ${valueFormatter(item.value || 0)}">
+                        <i style="width:${Math.max(3, (item.value || 0) / max * 100)}%"></i>
+                    </div>
+                </div>
+            `).join("") || '<span class="muted">Sem dados para exibir</span>';
+            fallback.hidden = false;
+            canvas.hidden = true;
+        }
+
+        function hideChartFallback(canvas) {
+            if (!canvas) {
+                return;
+            }
+            const fallback = ensureChartFallback(canvas);
+            canvas.hidden = false;
+            if (fallback) {
+                fallback.hidden = true;
+            }
+        }
+
         function topRowsBy(rows, key, limit = 5) {
             return [...rows]
                 .sort((a, b) => (b[key] || 0) - (a[key] || 0) || String(a.municipio_mapeado || a.municipio_tabela).localeCompare(String(b.municipio_mapeado || b.municipio_tabela), "pt-BR"))
@@ -3480,9 +3607,6 @@
         }
 
         function renderColumnChart(rows) {
-            if (!window.Chart) {
-                return;
-            }
             const ctx = document.getElementById("columnChart");
             const shell = document.getElementById("columnChartShell");
             const title = document.getElementById("columnChartTitle");
@@ -3490,6 +3614,10 @@
             const metricLabel = chartMainLabel();
             const labels = rows.map((row) => row.municipio_mapeado || row.municipio_tabela);
             const values = rows.map(chartMainValue);
+            const fallbackItems = rows.map((row) => ({
+                label: row.municipio_mapeado || row.municipio_tabela,
+                value: chartMainValue(row)
+            }));
             const totalVisible = values.reduce((sum, value) => sum + value, 0);
             const leader = rows[0];
 
@@ -3510,6 +3638,12 @@
                     <span class="chart-pill">Maior valor: <strong>${formatNumber(leaderValue)}</strong></span>
                 ` : '<span class="muted">Sem dados para exibir com os filtros atuais.</span>';
             }
+
+            if (!window.Chart || !ctx) {
+                showChartFallback(ctx, fallbackItems);
+                return;
+            }
+            hideChartFallback(ctx);
 
             const data = {
                 labels: labels.map((label) => axisLabel(label, 19)),
@@ -3568,19 +3702,24 @@
                     }
                 }
             };
-            if (charts.column) {
-                charts.column.data = data;
-                charts.column.options = options;
-                charts.column.resize();
-                charts.column.update();
-                return;
+            try {
+                if (charts.column) {
+                    charts.column.data = data;
+                    charts.column.options = options;
+                    charts.column.resize();
+                    charts.column.update();
+                    return;
+                }
+                charts.column = new Chart(ctx, {
+                    type: "bar",
+                    data,
+                    options,
+                    plugins: [readableValuePlugin]
+                });
+            } catch (error) {
+                console.warn("Nao foi possivel renderizar o grafico territorial.", error);
+                showChartFallback(ctx, fallbackItems);
             }
-            charts.column = new Chart(ctx, {
-                type: "bar",
-                data,
-                options,
-                plugins: [readableValuePlugin]
-            });
         }
 
         function renderTreemap(rows) {
@@ -4220,6 +4359,9 @@
         }
 
         function renderAntiquityMarkers(records) {
+            if (!antiquityMarkerLayer || !window.L) {
+                return;
+            }
             antiquityMarkerLayer.clearLayers();
             antiquityMarkerByRecord = new Map();
             const citySequence = new Map();
@@ -4327,13 +4469,15 @@
             renderAntiquityPersonList(records);
             renderAntiquityTable(records);
             renderAntiquityMarkers(records);
-            antiquityGeoJsonLayer.eachLayer((layer) => layer.setStyle(antiquityFeatureStyle(layer.feature)));
+            if (antiquityGeoJsonLayer) {
+                antiquityGeoJsonLayer.eachLayer((layer) => layer.setStyle(antiquityFeatureStyle(layer.feature)));
+            }
             renderAntiquityLegend();
             document.getElementById("antiquityActiveFilter").textContent = antiquityFilterLabels().length
                 ? antiquityFilterLabels().join(" + ")
                 : "Todos os registros";
 
-            if (openSelected && antiquityState.selectedId && antiquityMarkerByRecord.has(antiquityState.selectedId)) {
+            if (openSelected && antiquityMap && antiquityState.selectedId && antiquityMarkerByRecord.has(antiquityState.selectedId)) {
                 const marker = antiquityMarkerByRecord.get(antiquityState.selectedId);
                 antiquityMap.setView(marker.getLatLng(), Math.max(antiquityMap.getZoom(), 9), { animate: true });
                 marker.openPopup();
@@ -4341,15 +4485,21 @@
         }
 
         function renderMappingChart(chartKey, canvasId, items, color) {
-            if (!window.Chart) {
-                return;
-            }
             const visibleItems = items.slice(0, 8);
             const labels = visibleItems.map((item) => item.label);
             const canvas = document.getElementById(canvasId);
             if (canvas) {
                 canvas.style.height = `${Math.max(254, visibleItems.length * 31 + 72)}px`;
             }
+            const fallbackItems = visibleItems.map((item) => ({
+                label: item.label,
+                value: item.count
+            }));
+            if (!window.Chart || !canvas) {
+                showChartFallback(canvas, fallbackItems);
+                return;
+            }
+            hideChartFallback(canvas);
             const data = {
                 labels: labels.map((label) => axisLabel(label, 17)),
                 datasets: [{
@@ -4396,19 +4546,24 @@
                     }
                 }
             };
-            if (charts[chartKey]) {
-                charts[chartKey].data = data;
-                charts[chartKey].options = options;
-                charts[chartKey].resize();
-                charts[chartKey].update();
-                return;
+            try {
+                if (charts[chartKey]) {
+                    charts[chartKey].data = data;
+                    charts[chartKey].options = options;
+                    charts[chartKey].resize();
+                    charts[chartKey].update();
+                    return;
+                }
+                charts[chartKey] = new Chart(canvas, {
+                    type: "bar",
+                    data,
+                    options,
+                    plugins: [readableValuePlugin]
+                });
+            } catch (error) {
+                console.warn("Nao foi possivel renderizar o painel estatistico.", error);
+                showChartFallback(canvas, fallbackItems);
             }
-            charts[chartKey] = new Chart(canvas, {
-                type: "bar",
-                data,
-                options,
-                plugins: [readableValuePlugin]
-            });
         }
 
         function renderMappingCharts(records, rows) {
@@ -4470,6 +4625,9 @@
         }
 
         function updateMappingMap() {
+            if (!mappingGeoJsonLayer) {
+                return;
+            }
             mappingGeoJsonLayer.eachLayer((layer) => layer.setStyle(mappingLayerStyle(layer.feature)));
         }
 
@@ -4480,7 +4638,9 @@
             renderMappingFilters();
             updateMappingLayerButtons();
             renderMappingLegend();
-            renderMappingCharts(records, rows);
+            if (isPanelVisible("mappingPanel")) {
+                renderMappingCharts(records, rows);
+            }
             updateMappingDetails(records, rows);
             updateMappingMap();
             document.getElementById("mappingActiveFilter").textContent = hasMappingFilters()
@@ -4489,6 +4649,9 @@
         }
 
         function updateMap() {
+            if (!geoJsonLayer) {
+                return;
+            }
             geoJsonLayer.eachLayer((layer) => layer.setStyle(layerStyle(layer.feature)));
         }
 
@@ -4517,141 +4680,147 @@
             setDetails();
         }
 
-        const map = L.map("schoolMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: "&copy; OpenStreetMap"
-        }).addTo(map);
+        if (window.L) {
+            map = L.map("schoolMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap"
+            }).addTo(map);
 
-        geoJsonLayer = L.geoJSON(pageData.geojson, {
-            style: layerStyle,
-            onEachFeature(feature, layer) {
-                layer.on({
-                    click() {
-                        const row = featureRow(feature);
-                        if (row) {
-                            toggleCity(row.municipio_mapeado);
-                            updateView();
+            geoJsonLayer = L.geoJSON(pageData.geojson, {
+                style: layerStyle,
+                onEachFeature(feature, layer) {
+                    layer.on({
+                        click() {
+                            const row = featureRow(feature);
+                            if (row) {
+                                toggleCity(row.municipio_mapeado);
+                                updateView();
+                            }
+                            layer.openPopup();
+                        },
+                        mouseover() {
+                            layer.setStyle({ weight: 2.8, color: "#c54b3c" });
+                        },
+                        mouseout() {
+                            layer.setStyle(layerStyle(feature));
                         }
-                        layer.openPopup();
-                    },
-                    mouseover() {
-                        layer.setStyle({ weight: 2.8, color: "#c54b3c" });
-                    },
-                    mouseout() {
-                        layer.setStyle(layerStyle(feature));
-                    }
-                });
-                layer.bindPopup(() => {
-                    const dados = feature.properties.dados;
-                    const city = feature.properties.nome;
-                    const selected = selectedCities().includes(city) ? "Selecionado" : "Clique para selecionar";
-                    return `
-                        <strong>${city}</strong><br>
-                        CRPM: ${dados.crpm || "-"}<br>
-                        AIS: ${dados.ais || "-"}<br>
-                        Escolas: ${formatNumber(dados.escolas)}<br>
-                        Alunos: ${formatNumber(dados.alunos)}<br>
-                        Alunos/Escola: ${formatNumber(dados.escolas ? Math.round(dados.alunos / dados.escolas) : 0)}<br>
-                        <span>${selected}</span>
-                    `;
-                });
-            }
-        }).addTo(map);
-        map.fitBounds(geoJsonLayer.getBounds(), { padding: [18, 18] });
+                    });
+                    layer.bindPopup(() => {
+                        const dados = feature.properties.dados;
+                        const city = feature.properties.nome;
+                        const selected = selectedCities().includes(city) ? "Selecionado" : "Clique para selecionar";
+                        return `
+                            <strong>${city}</strong><br>
+                            CRPM: ${dados.crpm || "-"}<br>
+                            AIS: ${dados.ais || "-"}<br>
+                            Escolas: ${formatNumber(dados.escolas)}<br>
+                            Alunos: ${formatNumber(dados.alunos)}<br>
+                            Alunos/Escola: ${formatNumber(dados.escolas ? Math.round(dados.alunos / dados.escolas) : 0)}<br>
+                            <span>${selected}</span>
+                        `;
+                    });
+                }
+            }).addTo(map);
+            map.fitBounds(geoJsonLayer.getBounds(), { padding: [18, 18] });
 
-        const mappingMap = L.map("analysisMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: "&copy; OpenStreetMap"
-        }).addTo(mappingMap);
+            mappingMap = L.map("analysisMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap"
+            }).addTo(mappingMap);
 
-        mappingGeoJsonLayer = L.geoJSON(scientificData.geojson, {
-            style: mappingLayerStyle,
-            onEachFeature(feature, layer) {
-                layer.on({
-                    click() {
+            mappingGeoJsonLayer = L.geoJSON(scientificData.geojson, {
+                style: mappingLayerStyle,
+                onEachFeature(feature, layer) {
+                    layer.on({
+                        click() {
+                            const source = feature.properties.mapeamento || {};
+                            if (source.has_data) {
+                                toggleMappingFilter("cities", feature.properties.nome);
+                                updateMappingView();
+                            }
+                            layer.openPopup();
+                        },
+                        mouseover() {
+                            layer.setStyle({ weight: 2.8, color: "#c54b3c" });
+                        },
+                        mouseout() {
+                            layer.setStyle(mappingLayerStyle(feature));
+                        }
+                    });
+                    layer.bindPopup(() => {
+                        const city = feature.properties.nome;
+                        const row = mappingFeatureRow(feature);
                         const source = feature.properties.mapeamento || {};
-                        if (source.has_data) {
-                            toggleMappingFilter("cities", feature.properties.nome);
-                            updateMappingView();
-                        }
-                        layer.openPopup();
-                    },
-                    mouseover() {
-                        layer.setStyle({ weight: 2.8, color: "#c54b3c" });
-                    },
-                    mouseout() {
-                        layer.setStyle(mappingLayerStyle(feature));
-                    }
-                });
-                layer.bindPopup(() => {
-                    const city = feature.properties.nome;
-                    const row = mappingFeatureRow(feature);
-                    const source = feature.properties.mapeamento || {};
-                    const data = row || source;
-                    return `
-                        <strong>${escapeHtml(city)}</strong><br>
-                        Registros: ${formatNumber(data.registros)}<br>
-                        Região: ${escapeHtml((data.regions || []).join(", ") || "-")}<br>
-                        Batalhão: ${escapeHtml((data.battalions || []).join(", ") || "-")}<br>
-                        Função: ${escapeHtml((data.role_groups || data.functions || []).join(", ") || "-")}<br>
-                        POST/GRAD: ${escapeHtml((data.post_grads || []).join(", ") || "-")}<br>
-                        <span>${mappingSelectedValues("cities").includes(city) ? "Selecionado" : "Clique para selecionar"}</span>
-                    `;
-                });
-            }
-        }).addTo(mappingMap);
-        mappingMap.fitBounds(mappingGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                        const data = row || source;
+                        return `
+                            <strong>${escapeHtml(city)}</strong><br>
+                            Registros: ${formatNumber(data.registros)}<br>
+                            Região: ${escapeHtml((data.regions || []).join(", ") || "-")}<br>
+                            Batalhão: ${escapeHtml((data.battalions || []).join(", ") || "-")}<br>
+                            Função: ${escapeHtml((data.role_groups || data.functions || []).join(", ") || "-")}<br>
+                            POST/GRAD: ${escapeHtml((data.post_grads || []).join(", ") || "-")}<br>
+                            <span>${mappingSelectedValues("cities").includes(city) ? "Selecionado" : "Clique para selecionar"}</span>
+                        `;
+                    });
+                }
+            }).addTo(mappingMap);
+            mappingMap.fitBounds(mappingGeoJsonLayer.getBounds(), { padding: [18, 18] });
 
-        const antiquityMap = L.map("antiquityMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: "&copy; OpenStreetMap"
-        }).addTo(antiquityMap);
+            antiquityMap = L.map("antiquityMap", { zoomControl: true }).setView([-5.2, -39.5], 7);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap"
+            }).addTo(antiquityMap);
 
-        antiquityFeatureByCity = new Map(
-            scientificData.geojson.features.map((feature) => [feature.properties.nome, feature])
-        );
-        antiquityGeoJsonLayer = L.geoJSON(scientificData.geojson, {
-            style: antiquityFeatureStyle,
-            onEachFeature(feature, layer) {
-                layer.on({
-                    click() {
-                        const source = feature.properties.mapeamento || {};
-                        if (source.has_data) {
-                            antiquityState.city = feature.properties.nome;
-                            antiquityState.selectedId = null;
-                            updateAntiquityView(false);
+            antiquityFeatureByCity = new Map(
+                scientificData.geojson.features.map((feature) => [feature.properties.nome, feature])
+            );
+            antiquityGeoJsonLayer = L.geoJSON(scientificData.geojson, {
+                style: antiquityFeatureStyle,
+                onEachFeature(feature, layer) {
+                    layer.on({
+                        click() {
+                            const source = feature.properties.mapeamento || {};
+                            if (source.has_data) {
+                                antiquityState.city = feature.properties.nome;
+                                antiquityState.selectedId = null;
+                                updateAntiquityView(false);
+                            }
+                            layer.openPopup();
+                        },
+                        mouseover() {
+                            layer.setStyle({ weight: 2.8, color: "#c54b3c" });
+                        },
+                        mouseout() {
+                            layer.setStyle(antiquityFeatureStyle(feature));
                         }
-                        layer.openPopup();
-                    },
-                    mouseover() {
-                        layer.setStyle({ weight: 2.8, color: "#c54b3c" });
-                    },
-                    mouseout() {
-                        layer.setStyle(antiquityFeatureStyle(feature));
-                    }
-                });
-                layer.bindPopup(() => {
-                    const row = antiquityCurrentCityRows.get(feature.properties.nome);
-                    return `
-                        <strong>${escapeHtml(feature.properties.nome)}</strong><br>
-                        Registros filtrados: ${formatNumber(row?.registros || 0)}<br>
-                        Pessoas: ${escapeHtml((row?.people || []).slice(0, 8).join(", ") || "-")}<br>
-                        <span>Clique para filtrar esta cidade</span>
-                    `;
-                });
-            }
-        }).addTo(antiquityMap);
-        antiquityMarkerLayer = L.layerGroup().addTo(antiquityMap);
-        antiquityMap.fitBounds(antiquityGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                    });
+                    layer.bindPopup(() => {
+                        const row = antiquityCurrentCityRows.get(feature.properties.nome);
+                        return `
+                            <strong>${escapeHtml(feature.properties.nome)}</strong><br>
+                            Registros filtrados: ${formatNumber(row?.registros || 0)}<br>
+                            Pessoas: ${escapeHtml((row?.people || []).slice(0, 8).join(", ") || "-")}<br>
+                            <span>Clique para filtrar esta cidade</span>
+                        `;
+                    });
+                }
+            }).addTo(antiquityMap);
+            antiquityMarkerLayer = L.layerGroup().addTo(antiquityMap);
+            antiquityMap.fitBounds(antiquityGeoJsonLayer.getBounds(), { padding: [18, 18] });
+        } else {
+            showMapFallback("schoolMap");
+            showMapFallback("analysisMap");
+            showMapFallback("antiquityMap");
+        }
 
         window.addEventListener("resize", () => {
             window.requestAnimationFrame(() => {
-                map.invalidateSize();
-                mappingMap.invalidateSize();
-                antiquityMap.invalidateSize();
+                map?.invalidateSize();
+                mappingMap?.invalidateSize();
+                antiquityMap?.invalidateSize();
                 Object.values(charts).forEach((chart) => chart?.resize());
             });
         });
@@ -4753,14 +4922,20 @@
                     panel.hidden = panel.id !== button.dataset.tab;
                 });
                 window.requestAnimationFrame(() => {
-                    map.invalidateSize();
-                    mappingMap.invalidateSize();
+                    map?.invalidateSize();
+                    mappingMap?.invalidateSize();
                     if (button.dataset.tab === "mappingPanel") {
-                        mappingMap.fitBounds(mappingGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                        updateMappingView();
+                        if (mappingMap && mappingGeoJsonLayer) {
+                            mappingMap.fitBounds(mappingGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                        }
                     }
                     if (button.dataset.tab === "antiquityPanel") {
-                        antiquityMap.invalidateSize();
-                        antiquityMap.fitBounds(antiquityGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                        updateAntiquityView(false);
+                        antiquityMap?.invalidateSize();
+                        if (antiquityMap && antiquityGeoJsonLayer) {
+                            antiquityMap.fitBounds(antiquityGeoJsonLayer.getBounds(), { padding: [18, 18] });
+                        }
                     }
                     Object.values(charts).forEach((chart) => chart?.resize());
                 });
