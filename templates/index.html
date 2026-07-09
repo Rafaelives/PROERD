@@ -454,8 +454,50 @@
             font-weight: 900;
         }
 
+        .person-main .person-schools {
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+            line-height: 1.35;
+        }
+
+        .person-main .person-classes {
+            color: #087f7a;
+        }
+
+        #antiquityMetricFunction {
+            font-size: clamp(17px, 1.6vw, 26px);
+            line-height: 1.08;
+            letter-spacing: -0.035em;
+        }
+
         .person-card.active .person-main span {
             color: rgba(255, 255, 255, 0.82);
+        }
+
+        .antiquity-count-icon-shell {
+            border: 0;
+            background: transparent;
+        }
+
+        .antiquity-count-icon {
+            display: grid;
+            place-items: center;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #fff;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #087f7a, #256fba);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            line-height: 1;
+            box-shadow: 0 5px 12px rgba(22, 50, 58, 0.28);
+        }
+
+        .antiquity-count-icon.selected {
+            border-color: #e7aa25;
+            background: linear-gradient(135deg, #c54b3c, #e7aa25);
         }
 
         .science-metrics {
@@ -3070,14 +3112,14 @@
                             <small class="science-note" id="antiquityMetricPostNote">{{ scientific_page.filters.post_grads[0].count if scientific_page.filters.post_grads else 0 }} registro(s)</small>
                         </div>
                         <div class="metric">
-                            <strong id="antiquityMetricFunction">{{ scientific_page.filters.role_groups[0].label if scientific_page.filters.role_groups else "-" }}</strong>
-                            <span>Função em destaque</span>
-                            <small class="science-note" id="antiquityMetricFunctionNote">{{ scientific_page.filters.role_groups[0].count if scientific_page.filters.role_groups else 0 }} registro(s)</small>
+                            <strong id="antiquityMetricFunction">{{ scientific_page.top_class_instructor.name }}</strong>
+                            <span>Instrutor com mais turmas</span>
+                            <small class="science-note" id="antiquityMetricFunctionNote">{{ scientific_page.top_class_instructor.classes_total }} turma(s) · {{ scientific_page.top_class_instructor.schools_total }} escola(s)</small>
                         </div>
                     </div>
 
                     <div class="antiquity-filter-row">
-                        <input class="search" id="antiquitySearchInput" placeholder="Buscar antiguidade, nome, função, cidade ou POST/GRAD">
+                        <input class="search" id="antiquitySearchInput" placeholder="Buscar antiguidade, nome, escola, função, cidade ou POST/GRAD">
                         <select class="antiquity-select" id="antiquityPostFilter" aria-label="Filtrar por POST/GRAD"></select>
                         <select class="antiquity-select" id="antiquityFunctionFilter" aria-label="Filtrar por função"></select>
                         <select class="antiquity-select" id="antiquityCityFilter" aria-label="Filtrar por cidade"></select>
@@ -3096,7 +3138,7 @@
 
                     <aside class="antiquity-person-panel panel">
                         <h2 class="selected-title">Antiguidade</h2>
-                        <p class="selected-subtitle">POST/GRAD, nome, função e localização</p>
+                        <p class="selected-subtitle">POST/GRAD, nome, escolas, turmas e localização</p>
                         <div class="antiquity-person-list" id="antiquityPersonList"></div>
                     </aside>
                 </section>
@@ -3112,6 +3154,8 @@
                                     <th>Nome</th>
                                     <th>Função</th>
                                     <th>Cidade</th>
+                                    <th>Escolas</th>
+                                    <th>Turmas</th>
                                     <th>Região</th>
                                     <th>Batalhão</th>
                                 </tr>
@@ -4285,13 +4329,21 @@
                 : [...values, value];
         }
 
+        function mappingFilterCountLabel(field, count) {
+            const formattedCount = formatNumber(count);
+            if (field === "regions" || field === "cities") {
+                return `${formattedCount} ${count === 1 ? "escola" : "escolas"}`;
+            }
+            return formattedCount;
+        }
+
         function renderMappingFilterGroup(containerId, field, options) {
             const container = document.getElementById(containerId);
             container.innerHTML = options.map((item) => {
                 const active = mappingSelectedValues(field).includes(item.label);
                 return `
                     <button class="analysis-crime-button ${active ? "active" : ""}" data-mapping-field="${field}" data-mapping-value="${escapeHtml(item.label)}">
-                        ${escapeHtml(item.label)} · ${formatNumber(item.count)}
+                        ${escapeHtml(item.label)} · ${mappingFilterCountLabel(field, item.count)}
                     </button>
                 `;
             }).join("");
@@ -4545,7 +4597,9 @@
                 record.function,
                 record.raw_city,
                 record.region,
-                record.battalion
+                record.battalion,
+                (record.school_names || []).join(" "),
+                record.classes_total
             ].join(" ")).includes(antiquityState.search);
         }
 
@@ -4569,6 +4623,8 @@
                             functions: [],
                             role_groups: [],
                             people: [],
+                            school_names: [],
+                            classes_total: 0,
                             rows: []
                         });
                     }
@@ -4576,9 +4632,11 @@
                     row.registros += 1;
                     row.rows.push(record);
                     row.people.push(record.name);
+                    row.classes_total += record.classes_total || 0;
                     addUnique(row.post_grads, [record.post_grad]);
                     addUnique(row.functions, [record.function]);
                     addUnique(row.role_groups, [record.role_group]);
+                    addUnique(row.school_names, record.school_names || []);
                 });
             });
             return Array.from(cityMap.values())
@@ -4635,105 +4693,103 @@
             };
         }
 
-        function roleColor(record) {
-            if (record.role_group === "Instrutor") {
-                return "#087f7a";
-            }
-            if (record.role_group === "Monitor") {
-                return "#256fba";
-            }
-            if (record.role_group === "Coordenador") {
-                return "#e7aa25";
-            }
-            return "#c54b3c";
-        }
-
-        function recordPopup(record, city) {
+        function cityBubblePopup(row) {
+            const people = row.rows.slice(0, 8).map((record) => {
+                const schools = (record.school_names || []).join(", ") || "escola não informada";
+                return `<div><strong>${escapeHtml(record.name)}</strong> · ${formatNumber(record.classes_total)} turma(s)<br><span>${escapeHtml(schools)}</span></div>`;
+            }).join('<div style="height:6px"></div>');
+            const remaining = Math.max(row.rows.length - 8, 0);
             return `
-                <strong>${escapeHtml(record.seniority)}º · ${escapeHtml(record.name)}</strong><br>
-                POST/GRAD: ${escapeHtml(record.post_grad)}<br>
-                Função: ${escapeHtml(record.function)}<br>
-                Cidade: ${escapeHtml(city || record.raw_city)}<br>
-                Região: ${escapeHtml(record.region)}<br>
-                Batalhão: ${escapeHtml(record.battalion)}
+                <strong>${escapeHtml(row.municipio_mapeado)}</strong><br>
+                ${formatNumber(row.registros)} profissional(is) · ${formatNumber(row.classes_total)} turma(s)<br>
+                ${formatNumber(row.school_names.length)} escola(s) informada(s)
+                <div style="margin-top:8px">${people}</div>
+                ${remaining ? `<div style="margin-top:6px">+ ${formatNumber(remaining)} profissional(is)</div>` : ""}
             `;
         }
 
-        function renderAntiquityMarkers(records) {
+        function renderAntiquityMarkers(rows) {
             if (!antiquityMarkerLayer || !window.L) {
                 return;
             }
             antiquityMarkerLayer.clearLayers();
             antiquityMarkerByRecord = new Map();
-            const citySequence = new Map();
 
-            records.forEach((record) => {
-                officialRecordCities(record).forEach((city) => {
-                    const feature = antiquityFeatureByCity.get(city);
-                    if (!feature) {
-                        return;
-                    }
-                    const center = featureCenter(feature);
-                    const index = citySequence.get(city) || 0;
-                    citySequence.set(city, index + 1);
-                    const angle = index * 0.92;
-                    const radius = 0.018 + Math.floor(index / 8) * 0.008;
-                    const marker = L.circleMarker(
-                        [center.lat + Math.sin(angle) * radius, center.lng + Math.cos(angle) * radius],
-                        {
-                            radius: record.id === antiquityState.selectedId ? 9 : 6,
-                            color: "#16323a",
-                            weight: record.id === antiquityState.selectedId ? 2.6 : 1.4,
-                            fillColor: roleColor(record),
-                            fillOpacity: 0.92
-                        }
-                    ).bindPopup(recordPopup(record, city));
+            rows.forEach((row) => {
+                const feature = antiquityFeatureByCity.get(row.municipio_mapeado);
+                if (!feature) {
+                    return;
+                }
+                const selected = row.rows.some((record) => record.id === antiquityState.selectedId);
+                const size = Math.min(38, 23 + Math.sqrt(row.registros) * 3.5);
+                const marker = L.marker(featureCenter(feature), {
+                    icon: L.divIcon({
+                        className: "antiquity-count-icon-shell",
+                        html: `<span class="antiquity-count-icon ${selected ? "selected" : ""}">${formatNumber(row.registros)}</span>`,
+                        iconSize: [size, size],
+                        iconAnchor: [size / 2, size / 2],
+                        popupAnchor: [0, -size / 2]
+                    }),
+                    zIndexOffset: selected ? 1000 : row.registros * 10
+                }).bindPopup(cityBubblePopup(row), { maxWidth: 360 });
 
-                    marker.on("click", () => {
-                        antiquityState.selectedId = record.id;
-                        updateAntiquityView(false);
-                    });
-                    marker.addTo(antiquityMarkerLayer);
-                    if (!antiquityMarkerByRecord.has(record.id)) {
-                        antiquityMarkerByRecord.set(record.id, marker);
-                    }
-                });
+                marker.addTo(antiquityMarkerLayer);
+                row.rows.forEach((record) => antiquityMarkerByRecord.set(record.id, marker));
             });
         }
 
         function renderAntiquityLegend() {
             document.getElementById("antiquityLegend").innerHTML = `
-                Localização por função
-                <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Instrutor</div>
-                <div class="legend-row"><span class="swatch" style="background: #256fba"></span>Monitor</div>
-                <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Coordenador</div>
+                Profissionais por município
+                <div class="legend-row"><span class="swatch" style="background: #087f7a"></span>Número na bolha = profissionais</div>
+                <div class="legend-row"><span class="swatch" style="background: #e7aa25"></span>Profissional selecionado</div>
                 <div class="legend-row"><span class="swatch" style="background: #d5dde2"></span>Sem registro</div>
             `;
         }
 
+        function instructorWithMostClasses(records) {
+            return records
+                .filter((record) => record.role_group === "Instrutor" && (record.classes_total || 0) > 0)
+                .slice()
+                .sort((a, b) =>
+                    (b.classes_total || 0) - (a.classes_total || 0)
+                    || (b.schools_total || 0) - (a.schools_total || 0)
+                    || seniorityValue(a) - seniorityValue(b)
+                )[0] || null;
+        }
+
         function updateAntiquityCards(records, rows) {
             const topPost = topCount(records, "post_grad");
-            const topFunction = topCount(records, "function");
+            const topInstructor = instructorWithMostClasses(records);
             document.getElementById("antiquityMetricTotal").textContent = formatNumber(records.length);
             document.getElementById("antiquityMetricCities").textContent = formatNumber(rows.length);
             document.getElementById("antiquityMetricPost").textContent = topPost.label;
             document.getElementById("antiquityMetricPostNote").textContent = `${formatNumber(topPost.count)} registro(s)`;
-            document.getElementById("antiquityMetricFunction").textContent = topFunction.label;
-            document.getElementById("antiquityMetricFunctionNote").textContent = `${formatNumber(topFunction.count)} registro(s)`;
+            document.getElementById("antiquityMetricFunction").textContent = topInstructor?.name || "-";
+            document.getElementById("antiquityMetricFunctionNote").textContent = topInstructor
+                ? `${formatNumber(topInstructor.classes_total)} turma(s) · ${formatNumber(topInstructor.schools_total)} escola(s)`
+                : "Sem turmas informadas";
         }
 
         function renderAntiquityPersonList(records) {
             const container = document.getElementById("antiquityPersonList");
-            container.innerHTML = records.map((record) => `
+            const topInstructor = instructorWithMostClasses(records);
+            container.innerHTML = records.map((record) => {
+                const schools = (record.school_names || []).join(" · ") || "Escolas não informadas";
+                const topLabel = topInstructor?.id === record.id ? " · maior número de turmas" : "";
+                return `
                 <button class="person-card ${record.id === antiquityState.selectedId ? "active" : ""}" data-antiquity-id="${record.id}">
                     <span class="person-rank">${escapeHtml(record.seniority)}</span>
                     <span class="person-main">
                         <strong>${escapeHtml(record.name)}</strong>
                         <span>${escapeHtml(record.post_grad)} · ${escapeHtml(record.function)}</span>
                         <span>${escapeHtml(record.raw_city)}</span>
+                        <span class="person-schools" title="${escapeHtml(schools)}">Escolas: ${escapeHtml(schools)}</span>
+                        <span class="person-classes">${formatNumber(record.classes_total)} turma(s)${topLabel}</span>
                     </span>
                 </button>
-            `).join("") || '<span class="muted">Nenhum registro encontrado</span>';
+            `;
+            }).join("") || '<span class="muted">Nenhum registro encontrado</span>';
 
             container.querySelectorAll("[data-antiquity-id]").forEach((button) => {
                 button.addEventListener("click", () => {
@@ -4752,10 +4808,12 @@
                     <td>${escapeHtml(record.name)}</td>
                     <td>${escapeHtml(record.function)}</td>
                     <td>${escapeHtml(record.raw_city)}</td>
+                    <td>${escapeHtml((record.school_names || []).join(", ") || "Não informadas")}</td>
+                    <td>${formatNumber(record.classes_total)}</td>
                     <td>${escapeHtml(record.region)}</td>
                     <td>${escapeHtml(record.battalion)}</td>
                 </tr>
-            `).join("") || '<tr><td colspan="7" class="muted">Nenhum registro encontrado</td></tr>';
+            `).join("") || '<tr><td colspan="9" class="muted">Nenhum registro encontrado</td></tr>';
         }
 
         function updateAntiquityView(openSelected = false) {
@@ -4769,7 +4827,7 @@
             updateAntiquityCards(records, rows);
             renderAntiquityPersonList(records);
             renderAntiquityTable(records);
-            renderAntiquityMarkers(records);
+            renderAntiquityMarkers(rows);
             if (antiquityGeoJsonLayer) {
                 antiquityGeoJsonLayer.eachLayer((layer) => layer.setStyle(antiquityFeatureStyle(layer.feature)));
             }

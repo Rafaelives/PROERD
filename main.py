@@ -36,6 +36,7 @@ MAP_CRIME_CATEGORIES = {
     "TENTATIVA DE HOMICÍDIO": {"label": "Tentativa de homicídio", "color": "#12c8c6"},
 }
 MAPPING_SHEET_NAME = "Mapeamento"
+TEACHING_SHEET_NAME = "monit_instr"
 CEARA_MALHA_URL = (
     "https://servicodados.ibge.gov.br/api/v3/malhas/estados/23"
     "?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio"
@@ -670,6 +671,41 @@ def _mapping_option_counts(records, key):
     ]
 
 
+def _mapping_teaching_details(records):
+    details_by_registration = {}
+
+    for record in records:
+        registration_key = _normalize_key(record.get("MATRICULA"))
+        if not registration_key:
+            continue
+
+        details = details_by_registration.setdefault(
+            registration_key,
+            {
+                "school_names": set(),
+                "classes": set(),
+                "students_total": 0,
+            },
+        )
+        school = (record.get("ESCOLA") or "").strip()
+        class_name = (record.get("TURMAS") or "").strip()
+        if school:
+            details["school_names"].add(school)
+        if class_name:
+            details["classes"].add((school, class_name))
+        details["students_total"] += _to_int(record.get("ALUNOS"))
+
+    return {
+        registration_key: {
+            "school_names": sorted(details["school_names"], key=_normalize_key),
+            "schools_total": len(details["school_names"]),
+            "classes_total": len(details["classes"]),
+            "students_total": details["students_total"],
+        }
+        for registration_key, details in details_by_registration.items()
+    }
+
+
 def _mapping_city_rows(records, geojson):
     municipality_by_key = {
         _municipality_key(feature.get("properties", {}).get("nome")): feature
@@ -1100,6 +1136,8 @@ def _crime_tree(records):
 def get_dashboard_data():
     geojson = _load_ceara_geojson()
     raw_records = _read_xlsx_sheet(_workbook_path(), MAPPING_SHEET_NAME)
+    teaching_records = _read_xlsx_sheet(_workbook_path(), TEACHING_SHEET_NAME)
+    teaching_details = _mapping_teaching_details(teaching_records)
     records = []
 
     for index, record in enumerate(raw_records, start=1):
@@ -1108,6 +1146,16 @@ def get_dashboard_data():
         function = _clean_mapping_label(record, "FUNÇÃO")
         role_group = _mapping_role_group(function)
         seniority = _first_mapping_label(record, "ANTIGUIDADE", "ORD ANT.")
+        registration = _clean_mapping_label(record, "MATRICULA")
+        teaching = teaching_details.get(
+            _normalize_key(registration),
+            {
+                "school_names": [],
+                "schools_total": 0,
+                "classes_total": 0,
+                "students_total": 0,
+            },
+        )
         records.append(
             {
                 "id": index,
@@ -1121,11 +1169,12 @@ def get_dashboard_data():
                 "name_upper": _clean_mapping_label(record, "NOME_MAIUSCULO"),
                 "numeral": _clean_mapping_label(record, "NUMERAL"),
                 "post_grad": post_grad,
-                "matricula": _clean_mapping_label(record, "MATRICULA"),
+                "matricula": registration,
                 "name": _clean_mapping_label(record, "NOME"),
                 "function": function,
                 "role_group": role_group,
                 "post_role": f"{post_grad} · {role_group}",
+                **teaching,
             }
         )
 
@@ -1146,6 +1195,16 @@ def get_dashboard_data():
     instructor_total = sum(1 for record in records if record["role_group"] == "Instrutor")
     monitor_total = sum(1 for record in records if record["role_group"] == "Monitor")
     coordinator_total = sum(1 for record in records if record["role_group"] == "Coordenador")
+    instructors_with_classes = [
+        record
+        for record in records
+        if record["role_group"] == "Instrutor" and record["classes_total"] > 0
+    ]
+    top_class_instructor = max(
+        instructors_with_classes,
+        key=lambda record: (record["classes_total"], record["schools_total"], -record["seniority_sort"]),
+        default=None,
+    )
     top_5_total = sum(row["registros"] for row in city_rows[:5])
     hhi_regional = sum((item["count"] / total) ** 2 for item in region_counts) if total else 0
     period = "Mapeamento por cidade, região de atividade, função e POST/GRAD"
@@ -1182,7 +1241,19 @@ def get_dashboard_data():
             "instructors_total": instructor_total,
             "monitors_total": monitor_total,
             "coordinators_total": coordinator_total,
+            "schools_with_instructor_data": len(
+                {
+                    school
+                    for record in records
+                    for school in record["school_names"]
+                }
+            ),
             "max_records": max((row["registros"] for row in city_rows), default=0),
+        },
+        "top_class_instructor": {
+            "name": top_class_instructor["name"] if top_class_instructor else "-",
+            "classes_total": top_class_instructor["classes_total"] if top_class_instructor else 0,
+            "schools_total": top_class_instructor["schools_total"] if top_class_instructor else 0,
         },
         "kpis": [
             {
