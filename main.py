@@ -863,7 +863,7 @@ def get_territorial_data():
     max_students = max((record["alunos"] for record in mapped_rows), default=0)
 
     return {
-        "source": "Análise.xlsx / aba DADOS",
+        "source": "Municípios - Escolas/CRPM",
         "geojson": geojson,
         "records": dados_records,
         "mapped_rows": mapped_rows,
